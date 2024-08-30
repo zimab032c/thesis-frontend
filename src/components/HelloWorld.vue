@@ -195,7 +195,7 @@ export default {
     this.typingMessage = true; // Show typing indicator
 
     try {
-      const response = await axios.post("http://localhost:3000/api/chat", {
+      const response = await axios.post("https://thesis-backend-vd4s.onrender.com/api/chat", {
         userId,
         message: "", // Trigger initial introduction
       });
@@ -679,7 +679,7 @@ export default {
       }
 
       try {
-        const response = await axios.post("http://localhost:3000/api/chat", {
+        const response = await axios.post("https://thesis-backend-vd4s.onrender.com/api/chat", {
           userId, // Send userId with the request
           message: this.userMessage,
           delay: this.responseDelay,
