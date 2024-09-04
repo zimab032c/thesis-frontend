@@ -154,7 +154,6 @@ export default {
   },
 
   mounted() {
-
     // Calculate the max width of the insights based on the longest insight
     this.maxInsightWidth = this.calculateMaxInsightWidth();
     this.totalPillWidth = this.maxInsightWidth + 200; // Adjusted for padding, ring, and left extension
@@ -195,7 +194,8 @@ export default {
     this.typingMessage = true; // Show typing indicator
 
     try {
-      const response = await axios.post("https://thesis-backend-vd4s.onrender.com/api/chat", {
+      //const response = await axios.post("https://thesis-backend-vd4s.onrender.com/api/chat", {
+      const response = await axios.post("http://localhost:3000/api/chat", {
         userId,
         message: "", // Trigger initial introduction
       });
@@ -239,11 +239,11 @@ export default {
       // Reset other states if necessary
     },
     beforeRouteEnter(to, from, next) {
-    next(vm => {
-      vm.resetChat(); // Reset the chat when entering the route
-      vm.startChat(); // Start a new conversation
-    });
-  },
+      next((vm) => {
+        vm.resetChat(); // Reset the chat when entering the route
+        vm.startChat(); // Start a new conversation
+      });
+    },
     playSoundAndSendMessage() {
       const clickSound = this.$refs.clickSound;
 
@@ -432,10 +432,10 @@ export default {
     },
     simulateTyping(message, callback) {
       let index = 0;
-      const minSpeed = 50; // Minimum milliseconds between updates
-      const maxSpeed = 100; // Maximum milliseconds between updates
-      const shortPause = 800; // Short pause duration (in milliseconds)
-      const longPause = 1800; // Long pause duration (in milliseconds)
+      const minSpeed = 5; // Reduced minimum milliseconds between updates
+      const maxSpeed = 10; // Reduced maximum milliseconds between updates
+      const shortPause = 50; // Reduced short pause duration (in milliseconds)
+      const longPause = 100; // Reduced long pause duration (in milliseconds)
       const minSentenceLengthForPause = 15; // Minimum sentence length to trigger a long pause
       const keyPauseWords = [
         "therefore",
@@ -679,7 +679,8 @@ export default {
       }
 
       try {
-        const response = await axios.post("https://thesis-backend-vd4s.onrender.com/api/chat", {
+        // const response = await axios.post("https://thesis-backend-vd4s.onrender.com/api/chat", {
+        const response = await axios.post("http://localhost:3000/api/chat", {
           userId, // Send userId with the request
           message: this.userMessage,
           delay: this.responseDelay,
@@ -714,6 +715,106 @@ export default {
             "Escalating to human representative...",
           ];
         }
+
+        // // Handle customer number scenarios
+        // if (response.data.reply.includes("Thanks for confirming")) {
+        //   if (this.userMessage.includes("123-456")) {
+        //     // Correct customer number scenario
+        //     this.showProgressBar = true;
+        //     this.insights = [
+        //       "SKKR",
+        //       "Validating Customer Number...",
+        //       "Customer Number Verified.",
+        //       "Proceeding to Order Selection...",
+        //     ];
+        //   } else {
+        //     // Incorrect customer number scenario
+        //     this.showProgressBar = true;
+        //     this.insights = [
+        //       "Validating Customer Number...",
+        //       "Customer Number Incorrect.",
+        //       "Please Try Again.",
+        //     ];
+        //   }
+        // }
+
+        if (
+          response.data.reply.includes(
+            "I'm ready to assist you with your orders."
+          ) &&
+          this.userMessage.includes("123-456")
+        ) {
+          this.showProgressBar = true;
+          this.insights = [
+            "Costumer Num Pill Success",
+            "Accessing Customer Database...",
+            "Verifying Customer Identity...",
+            "Retrieving Order History...",
+            "Operation Complete",
+            "Costumer Num Pill Success",
+          ];
+        } else if (
+          response.data.reply.includes(
+            "It seems like the customer number you entered is incorrect. You can find your customer number in the confirmation E-Mail from your last purchase with us (Briefing Sheet)."
+          )
+        ) {
+          this.showProgressBar = true;
+          this.insights = [
+            "Costumer Num Pill FAIl",
+            "Accessing Customer Database...",
+            "Verifying Customer Identity...",
+            "Retrieving Order History...",
+            "Operation Complete",
+            "Costumer Num Pill FAIl",
+          ];
+        }
+
+        // else if (
+        //   response.data.reply.includes(
+        //     "I'm ready to assist you with your orders."
+        //   ) &&
+        //   this.userMessage.match("123-456")
+        // ) {
+        //   this.showProgressBar = true;
+        //   this.insights = [
+        //     "bussy check",
+        //     "Accessing Customer Database...",
+        //     "Verifying Customer Identity...",
+        //     "Retrieving Order History...",
+        //     "Operation Complete",
+        //     "Costumer Num Pill",
+        //   ];
+        // }
+
+        // else if (
+        //   response.data.reply.contains("Thanks fo confirming!") &&
+        //   this.userMessage.match("123-456")
+        // ) {
+        //   this.showProgressBar = true;
+        //   this.insights = [
+        //     "bussy check",
+        //     "Accessing Customer Database...",
+        //     "Verifying Customer Identity...",
+        //     "Retrieving Order History...",
+        //     "Operation Complete",
+        //     "Costumer Num Pill",
+        //   ];
+        // } else if (
+        //   response.data.reply.contains(
+        //     "It seems like the customer number you entered is incorrect. You can find your customer number in the confirmation E-Mail from your last purchase with us (Briefing Sheet)."
+        //   )
+        // ) {
+        //   this.showProgressBar = true;
+        //   this.insights = [
+        //     "BAD SKRRR",
+        //     "Accessing Customer Database...",
+        //     "Verifying Customer Identity...",
+        //     "Retrieving Order History...",
+        //     "Operation Complete",
+        //     "Costumer Num Pill",
+        //   ];
+        // }
+
         // Determine if a progress bar and pill message should be shown
         else if (this.detectTrackingKeywords(this.userMessage)) {
           this.showProgressBar = true;
@@ -723,18 +824,6 @@ export default {
             "Fetching Current Shipment Status...",
             "Operations Complete.",
             "Tracking Pill",
-          ];
-        } else if (
-          response.data.reply.includes("Customer number") ||
-          this.userMessage.match(/^\d+$/)
-        ) {
-          this.showProgressBar = true;
-          this.insights = [
-            "Accessing Customer Database...",
-            "Verifying Customer Identity...",
-            "Retrieving Order History...",
-            "Operation Complete",
-            "Costumer Num Pill",
           ];
         } else if (this.detectAddress(this.userMessage)) {
           this.showProgressBar = true;
