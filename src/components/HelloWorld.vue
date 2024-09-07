@@ -2,6 +2,38 @@
   <div class="chat-container">
     <audio ref="clickSound" src="/click.mp3" preload="auto" volume="1"></audio>
 
+    <button @click="toggleInfoModal" class="info-button">
+      <i class="fas fa-question"></i>
+    </button>
+
+    <!-- Info Modal -->
+    <div v-if="showInfoModal" class="info-modal">
+      <div class="info-content">
+        <h2>Task Information</h2>
+        <p><strong>Your Customer Number:</strong> <u>123-456</u></p>
+        <p>
+          <strong>Office Address Format:</strong> Example: 123 Office St, 10115
+          Berlin
+        </p>
+        <h3>Tasks</h3>
+        <ul>
+          <li>
+            <strong>Track Order A:</strong> Check the status and expected
+            delivery date of Order A.
+          </li>
+          <li>
+            <strong>Modify Delivery Address for Order B:</strong> Change the
+            delivery address for Order B to your office.
+          </li>
+          <li>
+            <strong>Return Order C:</strong> Initiate a return for Order C
+            because it doesn’t fit.
+          </li>
+        </ul>
+        <button @click="toggleInfoModal" class="close-button">Close</button>
+      </div>
+    </div>
+
     <!-- Messages Container -->
     <div class="messages" ref="messagesContainer">
       <div
@@ -115,6 +147,26 @@
         </button>
       </div>
     </div>
+
+    <!-- Completion Modal -->
+    <div v-if="showCompletionModal" class="completion-modal">
+      <div class="completion-content">
+        <h2>Tasks Completed</h2>
+        <p>You have completed all the required tasks.</p>
+        <p>
+          Would you like to proceed to the questionnaire or continue testing the
+          bot?
+        </p>
+        <div class="modal-buttons">
+          <button @click="proceedToQuestionnaire" class="proceed-button">
+            Proceed to Questionnaire
+          </button>
+          <button @click="continueTesting" class="continue-button">
+            Keep Testing the Bot
+          </button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -146,6 +198,8 @@ export default {
       pillMessages: [], // Array to store individual pill message states
       awaitingAddressInput: false, // Flag to determine if we're awaiting address input
       currentOrder: "", // Track the current order being referenced
+      showInfoModal: false, // State to control modal visibility
+      showCompletionModal: false, // Controls the completion modal visibility
     };
   },
   beforeCreate() {
@@ -231,6 +285,22 @@ export default {
     }
   },
   methods: {
+    // Function to trigger modal when all tasks are completed
+    showCompletionModalTrigger() {
+      this.showCompletionModal = true; // Show the modal
+    },
+    // Redirects to the questionnaire
+    proceedToQuestionnaire() {
+      window.location.href =
+        "https://docs.google.com/forms/d/e/1FAIpQLSczzL6ne5xJj3e91Q2XjETvT6MrqFDw4BSRl9ZmtMVpD9Rd5g/viewform?usp=sf_link"; // Replace with your Google Form link
+    },
+    // Keeps the user on the bot interface
+    continueTesting() {
+      this.showCompletionModal = false; // Close the modal and keep testing
+    },
+    toggleInfoModal() {
+      this.showInfoModal = !this.showInfoModal; // Toggle modal visibility
+    },
     resetChat() {
       this.userMessage = "";
       this.chatMessages = []; // Clear previous messages
@@ -380,7 +450,8 @@ export default {
         "return",
         "returning",
         "Return",
-        "returning",
+        "Returning",
+        "send back",
         "i want to return order",
       ];
       const lowercasedMessage = message.toLowerCase();
@@ -701,10 +772,14 @@ export default {
           .reverse()
           .find((msg) => msg.role === "assistant" && msg.type === "text");
 
+        console.log("Last assistant message:", lastAssistantMessage);
+
         const isReturningOrderC =
           lastAssistantMessage &&
           lastAssistantMessage.content.includes("Order C") &&
           this.userMessage.toLowerCase().includes("return");
+
+        console.log("Is returning Order C?", isReturningOrderC);
 
         // Check if the user is attempting to return Order C
         if (isReturningOrderC) {
@@ -713,32 +788,10 @@ export default {
             "Attempting to generate return label...",
             "Encountering issues with shipment provider...",
             "Escalating to human representative...",
+            "Special PILL",
           ];
-        }
-
-        // // Handle customer number scenarios
-        // if (response.data.reply.includes("Thanks for confirming")) {
-        //   if (this.userMessage.includes("123-456")) {
-        //     // Correct customer number scenario
-        //     this.showProgressBar = true;
-        //     this.insights = [
-        //       "SKKR",
-        //       "Validating Customer Number...",
-        //       "Customer Number Verified.",
-        //       "Proceeding to Order Selection...",
-        //     ];
-        //   } else {
-        //     // Incorrect customer number scenario
-        //     this.showProgressBar = true;
-        //     this.insights = [
-        //       "Validating Customer Number...",
-        //       "Customer Number Incorrect.",
-        //       "Please Try Again.",
-        //     ];
-        //   }
-        // }
-
-        if (
+          console.log("Insights for returning Order C:", this.insights);
+        } else if (
           response.data.reply.includes(
             "I'm ready to assist you with your orders."
           ) &&
@@ -768,53 +821,6 @@ export default {
             "Costumer Num Pill FAIl",
           ];
         }
-
-        // else if (
-        //   response.data.reply.includes(
-        //     "I'm ready to assist you with your orders."
-        //   ) &&
-        //   this.userMessage.match("123-456")
-        // ) {
-        //   this.showProgressBar = true;
-        //   this.insights = [
-        //     "bussy check",
-        //     "Accessing Customer Database...",
-        //     "Verifying Customer Identity...",
-        //     "Retrieving Order History...",
-        //     "Operation Complete",
-        //     "Costumer Num Pill",
-        //   ];
-        // }
-
-        // else if (
-        //   response.data.reply.contains("Thanks fo confirming!") &&
-        //   this.userMessage.match("123-456")
-        // ) {
-        //   this.showProgressBar = true;
-        //   this.insights = [
-        //     "bussy check",
-        //     "Accessing Customer Database...",
-        //     "Verifying Customer Identity...",
-        //     "Retrieving Order History...",
-        //     "Operation Complete",
-        //     "Costumer Num Pill",
-        //   ];
-        // } else if (
-        //   response.data.reply.contains(
-        //     "It seems like the customer number you entered is incorrect. You can find your customer number in the confirmation E-Mail from your last purchase with us (Briefing Sheet)."
-        //   )
-        // ) {
-        //   this.showProgressBar = true;
-        //   this.insights = [
-        //     "BAD SKRRR",
-        //     "Accessing Customer Database...",
-        //     "Verifying Customer Identity...",
-        //     "Retrieving Order History...",
-        //     "Operation Complete",
-        //     "Costumer Num Pill",
-        //   ];
-        // }
-
         // Determine if a progress bar and pill message should be shown
         else if (this.detectTrackingKeywords(this.userMessage)) {
           this.showProgressBar = true;
@@ -911,6 +917,14 @@ export default {
                 this.$nextTick(() => {
                   const container = this.$refs.messagesContainer;
                   container.scrollTop = container.scrollHeight;
+
+                  // Check if tasks are completed and show the completion modal
+                  if (response.data.tasksCompleted) {
+                    setTimeout(() => {
+                      this.showCompletionModalTrigger();
+                    }, 100); // Short delay to ensure smooth transition before showing modal
+                    // return; // Stop further execution if tasks are completed
+                  }
                 });
               });
             }, totalDuration);
@@ -929,6 +943,14 @@ export default {
               this.$nextTick(() => {
                 const container = this.$refs.messagesContainer;
                 container.scrollTop = container.scrollHeight;
+
+                // Check if tasks are completed and show the completion modal
+                if (response.data.tasksCompleted) {
+                  setTimeout(() => {
+                    this.showCompletionModalTrigger();
+                  }, 100); // Short delay to ensure smooth transition before showing modal
+                  // return; // Stop further execution if tasks are completed
+                }
               });
             });
           }
@@ -1074,7 +1096,7 @@ html {
 }
 
 .pill-message.collapsed {
-  transform: translateX(-440px);
+  transform: translateX(-420px);
 }
 
 .pill-message.collapsed:hover {
@@ -1364,5 +1386,120 @@ button:focus {
   50% {
     opacity: 0;
   }
+}
+
+/* Info Button */
+.info-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background-color: #dcf34f;
+  color: black;
+  border: none;
+  width: 60px; /* Set a fixed width */
+  height: 60px; /* Set the same value for height */
+  font-size: 20px; /* Adjust icon size */
+  border-radius: 50%; /* Ensure it's perfectly round */
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
+}
+
+.info-button:hover {
+  background-color: #b4bf4f;
+}
+
+/* Info Modal */
+.info-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  z-index: 1000;
+  width: 80%;
+  max-width: 500px;
+}
+
+.info-content h2,
+.info-content h3 {
+  margin-bottom: 10px;
+}
+
+.info-content p,
+.info-content ul {
+  margin-bottom: 20px;
+}
+
+.info-content ul {
+  padding-left: 20px;
+}
+
+.info-content ul li {
+  list-style-type: disc;
+}
+
+.close-button {
+  background-color: #dcf34f;
+  color: black;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.close-button:hover {
+  background-color: #b4bf4f;
+}
+
+/* Completion Modal */
+.completion-modal {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  padding: 30px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  z-index: 2000;
+  width: 80%;
+  max-width: 400px;
+}
+
+.completion-content h2 {
+  margin-bottom: 20px;
+  font-size: 24px;
+}
+
+.completion-content p {
+  margin-bottom: 20px;
+  font-size: 18px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: space-between;
+}
+
+.proceed-button,
+.continue-button {
+  background-color: #dcf34f;
+  color: black;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.proceed-button:hover,
+.continue-button:hover {
+  background-color: #b4bf4f;
 }
 </style>
