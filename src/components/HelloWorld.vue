@@ -160,8 +160,7 @@
             delivery address for Order B to your office.
           </li>
           <li>
-            <strong>Return Order C:</strong> Initiate a return for Order C
-            because it doesn’t fit.
+            <strong>Return Order C:</strong> Initiate a return for Order C.
           </li>
 
           <li><strong>Your Customer Number:</strong> <u>123-456</u></li>
@@ -474,10 +473,10 @@ export default {
       return keywordMatch || patternMatch;
     },
     detectAddress(message) {
-      // Improved Regular Expression for German Addresses
-      const germanAddressPattern =
-        /\b[A-Za-zßäöüÄÖÜ]+\s+\d+\s*,?\s*\d{5}\s+[A-Za-zßäöüÄÖÜ]+\b/i;
-      return germanAddressPattern.test(message);
+      //more flexible than before
+      const AddressPattern =
+        /\b[A-Za-zßäöüÄÖÜ]+\s+\d+[a-zA-Z]?\s*,?\s*\d+\s+?[A-Za-zßäöüÄÖÜ]+\b/i;
+      return AddressPattern.test(message);
     },
     // Function to detect tracking-related keywords
     detectTrackingKeywords(message) {
