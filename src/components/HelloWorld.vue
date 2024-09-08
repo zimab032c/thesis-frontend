@@ -96,6 +96,7 @@
         </div>
       </div>
     </div>
+
     <!-- Options Buttons -->
     <div class="options">
       <button
@@ -108,6 +109,7 @@
         {{ option }}
       </button>
     </div>
+
     <!-- Input Field with Integrated Send Button -->
     <div class="input-options">
       <div class="input-field-container">
@@ -116,19 +118,15 @@
           @keyup.enter="handleUserInput"
           placeholder="Type your message here..."
         />
+
         <!-- <audio ref="testAudio" src="/click.mp3"></audio> -->
         <button class="send-button" @click="playSoundAndSendMessage">
-          <!-- Attach the sound to this button -->
           <i class="fas fa-arrow-up"></i>
         </button>
       </div>
     </div>
 
-    <!-- Completion Button (Always Visible for Now) -->
-    <!-- <button class="completion-button" @click="showCompletionModal = true">
-      <i class="fas fa-exclamation"></i>
-    </button> -->
-    <!-- Add this button outside the modal, at the bottom of the screen -->
+    <!-- Completion Button -->
     <div
       v-if="tasksCompleted && !showCompletionModal"
       class="completion-button"
@@ -168,11 +166,6 @@
             <strong>Office Address Format:</strong> Example: Müller Straße 13,
             10115 Berlin
           </li>
-          <!-- <p><strong>Your Customer Number:</strong> 123-456</p>
-          <p>
-            <strong>Office Address Format:</strong> Müller Straße 13, 10115
-            Berlin
-          </p> -->
         </ul>
       </div>
 
@@ -208,11 +201,11 @@ export default {
   data() {
     return {
       userMessage: "",
-      responseDelay: 3000, // Default delay of 3 seconds
-      chatMessages: [], // Start empty, will populate from server
-      currentOptions: [], // Options for the user to select
-      typingMessage: "", // Temporary storage for the typing effect
-      showProgressBar: false, // State to control progress bar visibility
+      responseDelay: 3000,
+      chatMessages: [],
+      currentOptions: [],
+      typingMessage: "",
+      showProgressBar: false,
       insights: [
         "Accessing Customer Database...",
         "Retrieving Order History...",
@@ -222,26 +215,25 @@ export default {
       ],
       currentInsight: "",
       insightIndex: 0,
-      maxInsightWidth: 0, // Max width of insights
+      maxInsightWidth: 0,
       showLottieAnimation: false,
-      totalPillWidth: 0, // Width of the pill
-      pillAnimationClass: "", // Animation class for the pill
-      pillMessages: [], // Array to store individual pill message states
-      awaitingAddressInput: false, // Flag to determine if we're awaiting address input
-      currentOrder: "", // Track the current order being referenced
-      showInfoModal: false, // State to control modal visibility
-      showCompletionModal: false, // Controls the completion modal visibility
+      totalPillWidth: 0,
+      pillAnimationClass: "",
+      pillMessages: [],
+      awaitingAddressInput: false,
+      currentOrder: "",
+      showInfoModal: false,
+      showCompletionModal: false,
     };
   },
   beforeCreate() {
-    // Clear userId from sessionStorage on each reload
+    // clear userId from sessionStorage on each reload
     sessionStorage.removeItem("userId");
   },
 
   mounted() {
-    // Calculate the max width of the insights based on the longest insight
     this.maxInsightWidth = this.calculateMaxInsightWidth();
-    this.totalPillWidth = this.maxInsightWidth + 200; // Adjusted for padding, ring, and left extension
+    this.totalPillWidth = this.maxInsightWidth + 200;
 
     const clickSound = this.$refs.clickSound;
 
@@ -250,55 +242,37 @@ export default {
     });
 
     clickSound.volume = 1;
-
-    // Use $nextTick to ensure that DOM is fully updated before attaching event listeners
-    // this.$nextTick(() => {
-    //   const buttons = document.querySelectorAll(".options button");
-    //   buttons.forEach((button) => {
-    //     button.addEventListener("click", () => {
-    //       console.log("Button clicked, attempting to play sound");
-    //       audio
-    //         .play()
-    //         .then(() => {
-    //           console.log("Sound played successfully");
-    //         })
-    //         .catch((error) => {
-    //           console.error("Error playing sound:", error);
-    //         });
-    //     });
-    //   });
-    // });
   },
   async created() {
     let userId = sessionStorage.getItem("userId");
     if (!userId) {
-      userId = `user-${Math.random().toString(36).substr(2, 9)}`; // Generate a unique ID
+      userId = `user-${Math.random().toString(36).substr(2, 9)}`;
       sessionStorage.setItem("userId", userId);
     }
 
-    this.typingMessage = true; // Show typing indicator
+    this.typingMessage = true;
 
     try {
       //const response = await axios.post("https://thesis-backend-vd4s.onrender.com/api/chat", {
       const response = await axios.post("http://localhost:3000/api/chat", {
         userId,
-        message: "", // Trigger initial introduction
+        message: "",
       });
 
-      this.typingMessage = false; // Show typing indicator
+      this.typingMessage = false;
 
-      // Add an empty message to the chatMessages array to simulate typing
+      // empty message to simulate typing
       this.chatMessages.push({
         role: "assistant",
-        content: "", // Start with an empty content
+        content: "",
         type: "text",
       });
 
-      // Simulate the typing effect
+      // simulate the typing effect
       this.simulateTyping(response.data.reply, () => {
-        this.typingMessage = false; // Hide typing indicator after typing is complete
+        this.typingMessage = false;
 
-        // Set the available options after typing is complete
+        // set the available options after typing is complete
         this.currentOptions = response.data.options || [];
 
         this.$nextTick(() => {
@@ -316,31 +290,33 @@ export default {
     }
   },
   methods: {
-    // Function to clean up the "(Previously Selected)" text for rendering
+    // clean up the "(Previously Selected)" text for rendering
     cleanOptionsForDisplay(options) {
-      console.log("Original options received:", options); // Log original options
+      console.log("Original options received:", options);
 
       const cleanedOptions = options.map((option) => {
         const cleanedOption = option.replace(" (Previously Selected)", "");
-        console.log("Processed option:", cleanedOption); // Log each processed option
+        console.log("Processed option:", cleanedOption);
         return cleanedOption;
       });
 
-      console.log("Final cleaned options:", cleanedOptions); // Log the final cleaned options
+      console.log("Final cleaned options:", cleanedOptions);
       return cleanedOptions;
     },
-    // Function to trigger modal when all tasks are completed
+
+    // trigger modal when all tasks are completed
     showCompletionModalTrigger() {
-      this.tasksCompleted = true; // Set tasksCompleted to true when tasks are done
+      this.tasksCompleted = true;
     },
-    // Redirects to the questionnaire
+
+    // redirects to the questionnaire
     proceedToQuestionnaire() {
       const userId = sessionStorage.getItem("userId");
 
       axios
         .post("http://localhost:3000/api/end-session", {
           userId,
-          sessionEnd: true, // Set sessionEnd flag to true
+          sessionEnd: true,
         })
         .then(() => {
           // Redirect to the Google Form
@@ -351,26 +327,31 @@ export default {
           console.error("Error logging session end:", error);
         });
     },
-    // Keeps the user on the bot interface
+
+    // if user wants to continue testing
     continueTesting() {
-      this.showCompletionModal = false; // Close the modal and keep testing
+      this.showCompletionModal = false;
     },
+
     toggleInfoModal() {
-      this.showInfoModal = !this.showInfoModal; // Toggle modal visibility
+      this.showInfoModal = !this.showInfoModal;
     },
+
     resetChat() {
       this.userMessage = "";
-      this.chatMessages = []; // Clear previous messages
-      this.currentOptions = []; // Clear any previous options
-      this.typingMessage = false; // Reset typing indicator
-      // Reset other states if necessary
+      this.chatMessages = [];
+      this.currentOptions = [];
+      this.typingMessage = false;
     },
+
     beforeRouteEnter(to, from, next) {
       next((vm) => {
-        vm.resetChat(); // Reset the chat when entering the route
-        vm.startChat(); // Start a new conversation
+        vm.resetChat();
+        vm.startChat();
       });
     },
+
+    // click sound for send button
     playSoundAndSendMessage() {
       const clickSound = this.$refs.clickSound;
 
@@ -378,13 +359,15 @@ export default {
         .play()
         .then(() => {
           console.log("Sound played successfully via Send Button");
-          this.sendMessage(); // Send the message after the sound starts playing
+          this.sendMessage();
         })
         .catch((error) => {
           console.error("Error playing sound via Send Button:", error);
-          this.sendMessage(); // Send the message even if there's an error playing the sound
+          this.sendMessage();
         });
     },
+
+    // click sound for option buttons
     playSoundAndSendOption(option) {
       const clickSound = this.$refs.clickSound;
 
@@ -392,15 +375,17 @@ export default {
         .play()
         .then(() => {
           console.log("Sound played successfully via Option Button");
-          this.sendOption(option); // Send the option after the sound starts playing
+          this.sendOption(option);
         })
         .catch((error) => {
           console.error("Error playing sound via Option Button:", error);
-          this.sendOption(option); // Send the option even if there's an error playing the sound
+          this.sendOption(option);
         });
     },
+
+    // converts option buttons into complete answeres
     getFullUserMessage(input) {
-      const order = this.currentOrder || "B"; // Default to "A" if no order is set
+      const order = this.currentOrder || "B";
 
       const userMessages = {
         Track: `I'd like to receive tracking information regarding Order ${order}.`,
@@ -415,33 +400,29 @@ export default {
         "Back to Order Selection": `I want to go back and select a different order to manage.`,
       };
 
-      return userMessages[input] || input; // Fallback to input if no match is found
+      // exclude custom input
+      return userMessages[input] || input;
     },
 
-    // Function to set the current order based on user action
     setCurrentOrder(order) {
       this.currentOrder = order;
     },
 
     parseOrderFromResponse(responseText) {
-      // Regular expression to match "Order X" where X can be A, B, C, etc.
-      // The regex accounts for possible bold formatting (e.g., **Order A**)
       const orderPattern = /(\*\*|__)?Order\s([A-Z])(\*\*|__)?/;
       const match = responseText.match(orderPattern);
 
       if (match) {
-        return match[2]; // Returns the letter corresponding to the order
+        return match[2];
       }
-      return null; // Return null if no order is found
+      return null;
     },
 
-    // Define the isSpecialPill method to check for special pills
     isSpecialPill(pillIndex) {
-      // Implement your logic to identify if a pill is special
-      // For example, you might check a specific condition in pillMessages
       return this.pillMessages[pillIndex]?.isSpecial || false;
     },
-    // Function to detect keywords or patterns that suggest a gift message
+
+    // Detection Functions for Pill Messages
     detectGiftMessage(message) {
       const giftKeywords = [
         "present",
@@ -457,19 +438,14 @@ export default {
         "dear",
         "with love",
       ];
-
-      // Check if the message contains any of the keywords
       const lowercasedMessage = message.toLowerCase();
       const keywordMatch = giftKeywords.some((keyword) =>
         lowercasedMessage.includes(keyword)
       );
-
-      // Check for common patterns in gift messages
       const patternMatch = /dear|love|wishes|happy|congratulations|from/.test(
         lowercasedMessage
       );
 
-      // Combine both checks
       return keywordMatch || patternMatch;
     },
     detectAddress(message) {
@@ -478,7 +454,6 @@ export default {
         /\b[A-Za-zßäöüÄÖÜ]+\s+\d+[a-zA-Z]?\s*,?\s*\d+\s+?[A-Za-zßäöüÄÖÜ]+\b/i;
       return AddressPattern.test(message);
     },
-    // Function to detect tracking-related keywords
     detectTrackingKeywords(message) {
       const trackingKeywords = [
         "track",
@@ -493,7 +468,6 @@ export default {
         lowercasedMessage.includes(keyword)
       );
     },
-    // Function to detect cancel-related keywords
     detectCancelKeywords(message) {
       const cancelKeywords = ["cancel", "canceling", "cancel order"];
       const lowercasedMessage = message.toLowerCase();
@@ -501,7 +475,6 @@ export default {
         lowercasedMessage.includes(keyword)
       );
     },
-    // Function to detect tracking-related keywords
     detectReturnKeywords(message) {
       const returnKeywords = [
         "return",
@@ -516,34 +489,34 @@ export default {
         lowercasedMessage.includes(keyword)
       );
     },
+
     calculateStrokeDashoffset(progress) {
       const radius = 26;
       const circumference = radius * 2 * Math.PI;
       return circumference - (progress / 100) * circumference;
     },
+
     updateOptions(newOptions) {
-      console.log("updateOptions - newOptions before cleaning:", newOptions); // Log the raw newOptions
+      console.log("updateOptions - newOptions before cleaning:", newOptions);
       const cleanedOptions = this.cleanOptionsForDisplay(newOptions);
       console.log(
         "updateOptions - cleanedOptions after cleaning:",
         cleanedOptions
-      ); // Log the cleaned options
+      );
 
-      // Clear currentOptions first
       this.currentOptions = [];
 
-      // Wait for DOM update, then assign the cleaned options
+      // waiting for dom update
       this.$nextTick(() => {
         this.currentOptions = cleanedOptions;
 
-        // Trigger reflow to restart CSS animations
         this.$nextTick(() => {
           const buttons = document.querySelectorAll(".options button");
-          console.log("updateOptions - buttons rendered in DOM:", buttons); // Log the rendered buttons
+          console.log("updateOptions - buttons rendered in DOM:", buttons);
           buttons.forEach((button) => {
-            button.style.animation = "none"; // Reset animation
-            button.offsetHeight; // Trigger reflow
-            button.style.animation = ""; // Restore animation
+            button.style.animation = "none";
+            button.offsetHeight;
+            button.style.animation = "";
           });
         });
       });
@@ -552,7 +525,7 @@ export default {
     calculateMaxInsightWidth() {
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
-      context.font = "italic 20px Arial"; // Match the font style in CSS
+      context.font = "italic 20px Arial";
 
       let maxWidth = 0;
       this.insights.forEach((insight) => {
@@ -561,43 +534,46 @@ export default {
       });
       return maxWidth;
     },
+
     updatePillWidth() {
-      const marginAdjustment = 40; // New margin-left of insights
-      const ringWidth = 80; // Width of the animation ring
-      const paddingAdjustment = 20; // Additional padding if needed
+      const marginAdjustment = 40;
+      const ringWidth = 80;
+      const paddingAdjustment = 20;
       this.totalPillWidth =
         this.calculateMaxInsightWidth() +
         marginAdjustment +
         ringWidth +
         paddingAdjustment;
     },
+
     simulateTyping(message, callback) {
       let index = 0;
-      const minSpeed = 5; // Reduced minimum milliseconds between updates
-      const maxSpeed = 10; // Reduced maximum milliseconds between updates
-      const shortPause = 50; // Reduced short pause duration (in milliseconds)
-      const longPause = 100; // Reduced long pause duration (in milliseconds)
-      const minSentenceLengthForPause = 15; // Minimum sentence length to trigger a long pause
+      const minSpeed = 5;
+      const maxSpeed = 10;
+      const shortPause = 50;
+      const longPause = 100;
+      const minSentenceLengthForPause = 15;
       const keyPauseWords = [
         "therefore",
         "however",
         "because",
         "thus",
         "but",
-        // "and",
         "?",
-      ]; // Words that suggest a pause
+      ];
+      // clean the message of any options before typing
+      const cleanedMessage = message.replace(/Options:.+$/, "").trim();
 
-      // Add the 'typing' class to the message
       const messageElement = this.chatMessages[this.chatMessages.length - 1];
       messageElement.typing = true;
 
       const typeNextChunk = () => {
-        const remainingText = message.substring(index);
+        const remainingText = cleanedMessage.substring(index);
         let chunkSize = Math.min(
           Math.floor(Math.random() * 3) + 2,
           remainingText.length
-        ); // Randomize chunk size
+        );
+        // random chunk size
         let nextChunk = remainingText.substring(0, chunkSize);
 
         const periodIndex = nextChunk.indexOf(".");
@@ -607,7 +583,6 @@ export default {
         const sentenceLength = messageElement.content.split(" ").length;
 
         if (periodIndex !== -1 && periodIndex < chunkSize - 1) {
-          // Adjust chunk size to stop at the period
           chunkSize = periodIndex + 1;
           nextChunk = remainingText.substring(0, chunkSize);
         }
@@ -615,21 +590,20 @@ export default {
         messageElement.content += nextChunk;
         index += chunkSize;
 
-        // Scroll to the bottom of the container during each chunk addition
+        // auto scroll
         this.$nextTick(() => {
           const container = this.$refs.messagesContainer;
           container.scrollTop = container.scrollHeight;
         });
 
-        if (index < message.length) {
+        if (index < cleanedMessage.length) {
           let delay;
 
           if (nextChunk.includes(".") || keyWordPause) {
-            // Selective pausing: Only pause long sentences or after key phrases
             if (sentenceLength >= minSentenceLengthForPause || keyWordPause) {
-              delay = longPause; // Longer pause for longer sentences or key phrases
+              delay = longPause;
             } else {
-              delay = shortPause; // Short pause for shorter sentences
+              delay = shortPause;
             }
           } else {
             delay = Math.random() * (maxSpeed - minSpeed) + minSpeed;
@@ -637,26 +611,27 @@ export default {
 
           setTimeout(typeNextChunk, delay);
         } else {
-          // Remove the 'typing' class after typing is complete
+          // remove "typing" class after typing is complete
           messageElement.typing = false;
           if (callback) {
-            callback(); // Execute callback after typing is complete
+            callback();
           }
         }
       };
 
       typeNextChunk(); // Start typing
     },
+
+    // risky
     setProgress(circle, percent) {
       const radius = circle.r.baseVal.value;
       const circumference = radius * 2 * Math.PI;
 
       circle.style.strokeDasharray = `${circumference} ${circumference}`;
 
-      // If it's the final segment, ensure the offset is exactly 0
+      // if its the final segment, ensure the offset is exactly 0
       let offset = circumference - (percent / 100) * circumference;
       if (percent >= 99.9) {
-        // Tweak this threshold as necessary
         offset = 0;
       }
 
@@ -664,23 +639,26 @@ export default {
     },
     animateProgress(circle, insights) {
       const totalInsights = insights.length;
-      const segment = 100 / totalInsights; // Calculate segment size
-      const segmentDuration = 1500; // Duration for each segment (1.5 seconds)
+      // calculate segment size
+      const segment = 100 / totalInsights;
+      // duration for each segment
+      const segmentDuration = 1500;
 
       insights.forEach((insight, index) => {
         setTimeout(() => {
           this.currentInsight = insight;
-          let progress = Math.min((index + 1) * segment, 100); // Calculate progress based on segment
+          let progress = Math.min((index + 1) * segment, 100);
 
-          // Ensure that the last segment sets the progress to exactly 100%
+          // last segment should set the progress to exactly 100%
           if (index === totalInsights - 1) {
             progress = 100;
           }
-
-          this.setProgress(circle, progress); // Set progress for current segment
-        }, index * segmentDuration); // Pause for 1.5 seconds between segments
+          // set progress for current segment
+          this.setProgress(circle, progress);
+        }, index * segmentDuration); // pause for 1.5 seconds between segments
       });
     },
+
     startCyclingInsights(pillIndex) {
       const pillMessage = this.pillMessages[pillIndex];
       pillMessage.insightIndex = 0;
@@ -708,6 +686,7 @@ export default {
       );
       cycleThroughInsights();
     },
+
     stopCyclingInsights(pillIndex) {
       const pillMessage = this.pillMessages[pillIndex];
       if (pillMessage.intervalId) {
@@ -715,56 +694,20 @@ export default {
         pillMessage.intervalId = null;
       }
     },
-    // stopCyclingInsights() {
-    //   if (this.intervalId) {
-    //     clearInterval(this.intervalId);
-    //     this.intervalId = null; // Ensure interval is cleared
 
-    //     // Set the slide-out animation
-    //     // this.pillAnimationClass = "slide-out";
-
-    //     // Delay the slide-out animation
-    //     // const slideOutDelay = 3000; // Delay before the slide-out starts (in milliseconds)
-
-    //     // setTimeout(() => {
-    //     //   // Set the slide-out animation
-    //     //   this.pillAnimationClass = "slide-out";
-
-    //     //   // Remove the pill message when the animation completes
-    //     //   // setTimeout(() => {
-    //     //   //   this.chatMessages = this.chatMessages.filter(
-    //     //   //     (message) => message.type !== "pill"
-    //     //   //   );
-    //     //   // }, 1000); // Delay to match the slide-out animation duration
-    //     // }, slideOutDelay);
-
-    //     // Remove the pill message when the animation completes
-    //     // this.chatMessages = this.chatMessages.filter(
-    //     //   (message) => message.type !== "pill"
-    //     // );
-    //   }
-    // },
     toggleLottieAnimation() {
       this.showLottieAnimation = !this.showLottieAnimation;
     },
-    // startPillAnimation() {
-    //   console.log("Starting pill animation"); // Debug log
-    //   this.pillAnimationClass = "slide-in";
-    //   this.showLottieAnimation = false; // Reset animation
-    //   setTimeout(() => {
-    //     this.startCyclingInsights(); // Start the cycle after sliding in
-    //   }, 500); // Start cycling after the slide-in animation
-    // },
+
     startPillAnimation(pillIndex) {
       console.log("Starting pill animation for pill:", pillIndex);
       const pillMessage = this.pillMessages[pillIndex];
 
-      // Determine if this is the special pill message
+      // check for special pill
       const isSpecialPillMessage = pillMessage.insights.includes(
         "Encountering issues with shipment provider..."
       );
 
-      // Set the Lottie animation URL based on whether it's a special pill
       const lottieUrl = isSpecialPillMessage
         ? "https://lottie.host/d0178bee-39e1-4fe3-b235-18de7784f8d7/PzBoGqgmrh.json"
         : "https://lottie.host/1b945786-25bb-469c-9b7d-afd47c493091/AupOFJL7zQ.json";
@@ -777,26 +720,27 @@ export default {
 
           this.startCyclingInsights(pillIndex);
 
-          // Delay until the insights have cycled and Lottie animation should start
-          const insightsDuration = pillMessage.insights.length * 2000; // 2000ms per insight
+          // delay for insight cycling
+          const insightsDuration = pillMessage.insights.length * 2000;
           setTimeout(() => {
-            pillMessage.animationClass = "completed"; // Mark the pill as completed
+            pillMessage.animationClass = "completed";
+            // trigger lottie animation
+            pillMessage.showLottieAnimation = true;
 
-            pillMessage.showLottieAnimation = true; // Trigger the Lottie animation
-
-            // After Lottie animation completes, transition to collapsed state
-            const lottieAnimationDuration = 3000; // Assuming Lottie animation is 3 seconds long
+            // collapse pill after lottie animation
+            const lottieAnimationDuration = 3000;
             setTimeout(() => {
-              pillMessage.animationClass = "collapsed"; // Transition to collapsed state
+              pillMessage.animationClass = "collapsed";
             }, lottieAnimationDuration);
-          }, insightsDuration + 500); // Adjust the time to match the insight cycling duration
+          }, insightsDuration + 500);
         }, 50);
       });
     },
+
     async sendMessage(isOption = false) {
       if (this.userMessage.trim() === "") return;
 
-      // Push the userMessage to chatMessages if it's not coming from an option
+      // send custom user input
       if (!isOption) {
         this.chatMessages.push({
           role: "user",
@@ -805,44 +749,43 @@ export default {
         });
       }
 
+      // auto scroll
       this.$nextTick(() => {
         const container = this.$refs.messagesContainer;
-        container.scrollTop = container.scrollHeight; // Scroll to the bottom of the container after the user message
+        container.scrollTop = container.scrollHeight;
       });
 
-      // Show the "thinking" indicator
       this.typingMessage = true;
 
       let userId = sessionStorage.getItem("userId");
       if (!userId) {
-        userId = `user-${Math.random().toString(36).substr(2, 9)}`; // Generate a unique ID
+        userId = `user-${Math.random().toString(36).substr(2, 9)}`;
         sessionStorage.setItem("userId", userId);
       }
 
       try {
         // const response = await axios.post("https://thesis-backend-vd4s.onrender.com/api/chat", {
         const response = await axios.post("http://localhost:3000/api/chat", {
-          userId, // Send userId with the request
+          userId,
           message: this.userMessage,
           delay: this.responseDelay,
         });
 
-        // Parse the order from the bot's response
+        // parse order from bot response
         const parsedOrder = this.parseOrderFromResponse(response.data.reply);
         if (parsedOrder) {
           this.setCurrentOrder(parsedOrder);
-          console.log(`Order detected and set: ${parsedOrder}`); // Debugging log
+          // debugging log
+          console.log(`Order detected and set: ${parsedOrder}`);
         } else {
           console.log("No order detected in the response");
         }
 
-        // Check if the last assistant message referenced "Order C" and the user is trying to "Return"
+        // check if bots lost message mentioned Order C and if user is trying to return it
         const lastAssistantMessage = this.chatMessages
           .slice()
           .reverse()
           .find((msg) => msg.role === "assistant" && msg.type === "text");
-
-        console.log("Last assistant message:", lastAssistantMessage);
 
         const isReturningOrderC =
           lastAssistantMessage &&
@@ -851,7 +794,8 @@ export default {
 
         console.log("Is returning Order C?", isReturningOrderC);
 
-        // Check if the user is attempting to return Order C
+        // PILL MESSAGE CHECKS
+        // special pill check
         if (isReturningOrderC) {
           this.showProgressBar = true;
           this.insights = [
@@ -890,9 +834,7 @@ export default {
             "Operation Complete",
             "Costumer Num Pill FAIl",
           ];
-        }
-        // Determine if a progress bar and pill message should be shown
-        else if (this.detectTrackingKeywords(this.userMessage)) {
+        } else if (this.detectTrackingKeywords(this.userMessage)) {
           this.showProgressBar = true;
           this.insights = [
             "Verifying Order Details...",
@@ -935,9 +877,9 @@ export default {
           this.showProgressBar = false;
         }
 
-        // Delay for the "thinking" indicator
+        // delay typing indicator
         setTimeout(() => {
-          this.typingMessage = false; // Remove the "thinking" indicator after delay
+          this.typingMessage = false;
 
           if (this.showProgressBar) {
             const newPillMessage = {
@@ -946,7 +888,7 @@ export default {
               insightIndex: 0,
               showLottieAnimation: false,
               progress: 0,
-              animationClass: "", // Initialize animation class
+              animationClass: "",
             };
             this.pillMessages.push(newPillMessage);
 
@@ -958,21 +900,20 @@ export default {
 
             this.startPillAnimation(this.pillMessages.length - 1);
 
-            // Ensure the DOM updates are completed before scrolling
+            // wait for dom before scrolling
             this.$nextTick(() => {
               const container = this.$refs.messagesContainer;
-              container.scrollTop = container.scrollHeight; // Scroll to the bottom of the container
+              container.scrollTop = container.scrollHeight;
 
-              const circle = this.$refs.progressCircle; // Access the circle via ref
+              const circle = this.$refs.progressCircle;
 
-              // Fix: Ensure the circle element exists before trying to set its progress
+              // fix: Ensure the circle element exists before trying to set its progress
               if (circle && circle.r && circle.r.baseVal) {
-                this.setProgress(circle, 0); // Start at 0% (empty)
-                this.animateProgress(circle, this.insights); // Start animation
+                // start with empty ring
+                this.setProgress(circle, 0);
+                this.animateProgress(circle, this.insights);
               } else {
-                console.error(
-                  "Progress circle not found or not fully initialized."
-                );
+                console.error("Progress ring not found?");
               }
             });
 
@@ -981,13 +922,13 @@ export default {
             setTimeout(() => {
               this.showProgressBar = false;
 
-              // After the progress bar is done, type out the actual response
+              // after the progress bar is done, type out the actual response
               this.chatMessages.push({
                 role: "assistant",
                 content: "",
                 type: "text",
               });
-              // Simulate typing and render options after completion
+              // simulate typing and render options after completion
               this.simulateTyping(response.data.reply, () => {
                 this.updateOptions(response.data.options || []);
                 this.currentOptions = response.data.options || [];
@@ -996,24 +937,23 @@ export default {
                   const container = this.$refs.messagesContainer;
                   container.scrollTop = container.scrollHeight;
 
-                  // Check if tasks are completed and show the completion modal
+                  // check if tasks are completed and show the completion button if so
                   if (response.data.tasksCompleted) {
                     setTimeout(() => {
                       this.showCompletionModalTrigger();
-                    }, 100); // Short delay to ensure smooth transition before showing modal
-                    // return; // Stop further execution if tasks are completed
+                    }, 100);
                   }
                 });
               });
             }, totalDuration);
           } else {
-            // For normal messages (no progress bar)
+            // for normal messages (no progress bar)
             this.chatMessages.push({
               role: "assistant",
               content: "",
               type: "text",
             });
-            // Simulate typing and render options after completion
+            // simulate typing and render options after completion
             this.simulateTyping(response.data.reply, () => {
               this.updateOptions(response.data.options || []);
               this.currentOptions = response.data.options || [];
@@ -1022,46 +962,45 @@ export default {
                 const container = this.$refs.messagesContainer;
                 container.scrollTop = container.scrollHeight;
 
-                // Check if tasks are completed and show the completion modal
+                // check if tasks are completed and show the completion modal
                 if (response.data.tasksCompleted) {
                   setTimeout(() => {
                     this.showCompletionModalTrigger();
-                  }, 100); // Short delay to ensure smooth transition before showing modal
-                  // return; // Stop further execution if tasks are completed
+                  }, 100);
                 }
               });
             });
           }
-        }, 2000); // 2 seconds delay for the "thinking" indicator
+        }, 2000); // 2 seconds delay for the typing indicator
       } catch (error) {
         console.error("Error sending message:", error);
-        this.typingMessage = false; // Clear the typing indicator in case of error
+        this.typingMessage = false;
         this.chatMessages.push({
           role: "assistant",
           content: "Sorry, there was an error processing your request.",
           type: "text",
         });
       }
-      this.userMessage = ""; // Clear the user message input after sending
+      //  clear user input after sending
+      this.userMessage = "";
     },
-    // Modified sendOption method
+
+    // modified sendOption method
     sendOption(option) {
       const fullUserMessage = this.getFullUserMessage(option);
 
-      // Display the full-length message in the chat
+      // long message
       this.chatMessages.push({
         role: "user",
         content: fullUserMessage,
         type: "text",
       });
 
-      // Set the short form input and call sendMessage with isOption=true
       this.userMessage = option;
       this.sendMessage(true);
     },
     handleUserInput() {
-      // This method is triggered by the input field's send button or enter key
-      this.sendMessage(false); // false indicates this is not an option
+      this.sendMessage(false);
     },
   },
 };
@@ -1079,36 +1018,36 @@ html {
 }
 
 .chat-container {
-  width: 100vw; /* Set width to full viewport width */
-  height: 100vh; /* Set height to full viewport height */
+  width: 100vw;
+  height: 100vh;
   display: flex;
   flex-direction: column;
-  justify-content: space-between; /* Ensures space distribution */
+  justify-content: space-between;
   align-items: center;
   overflow: auto;
 }
 
 :root {
-  --shared-width: 1400px; /* Define a shared width variable */
+  --shared-width: 1400px;
 }
 
 .messages {
-  width: var(--shared-width); /* Use the shared width variable */
-  height: 500px; /* Increased height */
+  width: var(--shared-width);
+  height: 500px;
   overflow-y: auto;
   border: 1px solid #ccc;
-  padding: 15px; /* Increased padding for better text alignment */
-  border-radius: 40px; /* Rounded corners */
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* Optional: add shadow for depth */
-  background-color: #f9f9f9; /* Optional: change background color for contrast */
-  flex-grow: 1; /* Allows this box to grow to fill available space */
+  padding: 15px;
+  border-radius: 40px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #f9f9f9;
+  flex-grow: 1;
   display: flex;
   flex-direction: column;
-  align-items: stretch; /* Stretches to use the full width available */
-  margin-top: 30px; /* Margin at the top */
+  align-items: stretch;
+  margin-top: 30px;
   background-color: #e6e6e6;
-  position: relative; /* Set relative positioning for sliding */
-  overflow-x: hidden; /* Add this to hide any horizontal overflow */
+  position: relative;
+  overflow-x: hidden;
 }
 
 .message {
@@ -1129,47 +1068,47 @@ html {
   white-space: nowrap;
   overflow: visible;
   text-overflow: clip;
-  margin-left: 40px; /* Add margin to push content right */
+  margin-left: 40px;
 
   transition: max-width 2s ease-in-out, opacity 2s ease-in-out;
-  max-width: 100%; /* Default max-width to allow full text display */
+  max-width: 100%;
 }
 
 .pill-message.slide-in {
-  transform: translateX(0px); /* Slide into view */
+  transform: translateX(0px);
 }
 
 .pill-message {
   overflow: visible;
   transition: transform 0.5s ease-in-out;
-  transform: translateX(-700px); /* Start off-screen to the left */
+  transform: translateX(-700px);
   background-color: transparent !important;
   padding: 0 !important;
   box-shadow: none !important;
   border-radius: 0 !important;
-  margin-bottom: 10px; /* Add space between messages */
+  margin-bottom: 10px;
 }
 
 .progress-pill {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  background-color: white; /* Pill remains white */
+  background-color: white;
   border-radius: 50px;
   padding: 5px 10px;
   margin: 5px 0;
   box-shadow: 1px 1px 5px rgba(0, 0, 0, 0.2);
-  transition: width 2s ease-in-out; /* Smooth transition for collapsing */
-  width: 100%; /* Start with full width */
+  transition: width 2s ease-in-out;
+  width: 100%;
 }
 
 .pill-message.completed {
-  transform: none; /* Reset any transforms */
+  transform: none;
   background-color: #fff;
   padding: 10px 20px;
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
   border-radius: 10px;
-  position: relative; /* Ensure it's part of the flow */
+  position: relative;
   margin-bottom: 10px;
 }
 
@@ -1188,11 +1127,11 @@ html {
 }
 
 .user {
-  align-self: flex-end; /* Align user messages to the right */
+  align-self: flex-end;
   background-color: #c0cfd1;
   color: black;
-  margin-left: auto; /* Pushes the bubble to the right */
-  margin-right: 10px; /* Margin from the right edge */
+  margin-left: auto;
+  margin-right: 10px;
   text-align: right;
 }
 
@@ -1200,54 +1139,51 @@ html {
   content: "";
   position: absolute;
   top: 10px;
-  right: -20px; /* Adjust this value to move the tail right or left */
+  right: -20px;
   width: 0;
   height: 0;
-  border: 30px solid transparent; /* Adjust size of the triangle */
-  border-left-color: #c0cfd1; /* Same as the bubble background */
+  border: 30px solid transparent;
+  border-left-color: #c0cfd1;
   border-right: none;
   border-top: none;
 }
 
 .assistant {
-  align-self: flex-start; /* Align assistant messages to the left */
+  align-self: flex-start;
   background-color: #141e22;
   color: white;
-  margin-left: 10px; /* Margin from the left edge */
+  margin-left: 10px;
   text-align: left;
-  max-width: 70%; /* Reduce from 80% to 60% or your preferred value */
+  max-width: 70%;
 }
 
 .assistant::before {
   content: "";
   position: absolute;
   top: 10px;
-  left: -20px; /* Adjust this value to move the tail right or left */
+  left: -20px;
   width: 0;
   height: 0;
-  border: 30px solid transparent; /* Adjust size of the triangle */
-  border-right-color: #141e22; /* Same as the bubble background */
+  border: 30px solid transparent;
+  border-right-color: #141e22;
   border-left: none;
   border-top: none;
 }
 
-/* Adjust tail position specifically for the thinking indicator */
 .message.assistant.typing-indicator::before {
-  top: 5px; /* Move the tail up for thinking indicators */
+  top: 5px;
 }
 
-/* Applying the class to the typing indicator */
 .message.assistant.typing-indicator {
   position: relative;
 }
 
-/* Remove tail for pill messages */
 .pill-message::before {
-  content: none; /* Remove the pseudo-element content */
+  content: none;
 }
 
 .input-options {
-  width: 80%; /* ensures input options take the full width */
+  width: 80%;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1255,26 +1191,26 @@ html {
 
 .input-field-container {
   display: flex;
-  width: 800px; /* Take the full width of the input-options container */
-  align-items: center; /* Aligns children vertically in the center */
+  width: 800px;
+  align-items: center;
   border-radius: 50px;
   border: 1px solid #ccc;
   background-color: #c0cfd1;
   overflow: hidden;
   box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
-  height: 60px; /* Set a fixed height for the container */
+  height: 60px;
   margin-bottom: 20px;
 }
 
 .input-options input {
   width: calc(100% - 100px);
-  flex-grow: 1; /* Makes the input field take all available space */
-  height: 50px; /* Height of the input field */
-  border: none; /* Remove border */
-  background-color: transparent; /* Make background transparent */
-  color: black; /* Text color */
+  flex-grow: 1;
+  height: 50px;
+  border: none;
+  background-color: transparent;
+  color: black;
   padding-left: 50px;
-  outline: none; /* Remove outline on focus */
+  outline: none;
   font-size: 16px;
 }
 
@@ -1283,9 +1219,9 @@ html {
   background-color: #dcf34f;
   color: black;
   border: none;
-  width: 100px; /* Increase width for pill shape */
-  height: 50px; /* Set a smaller height for pill shape */
-  border-radius: 25px; /* Adjust border-radius for pill shape */
+  width: 100px;
+  height: 50px;
+  border-radius: 25px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -1314,7 +1250,7 @@ html {
 .options button {
   opacity: 0;
   position: relative;
-  top: 50px; /* Start 50px below the final position */
+  top: 50px;
   animation: fadeInPopup 0.5s forwards ease-out;
   animation-delay: calc(var(--i) * 0.2s);
   margin: 5px;
@@ -1334,12 +1270,11 @@ html {
 button:hover {
   background-color: #dcf34f;
   color: #141e22;
-  transform: translateY(3px); /* Hover effect using translateY */
+  transform: translateY(3px);
   box-shadow: 0 6px 12px rgba(220, 243, 79, 0.5);
 }
 
 button:active {
-  /* background-color: #b4bf4f; */
   color: white;
   transform: translateY(1px);
 }
@@ -1350,13 +1285,13 @@ button:focus {
 }
 
 .grayed-out {
-  background-color: #ddd; /* Gray background for grayed out */
-  color: #666; /* Darker text color */
+  background-color: #ddd;
+  color: #666;
 }
 
 .animation-container {
-  margin-left: auto; /* Align the animation to the right edge of the pill */
-  position: relative; /* Use relative positioning for container */
+  margin-left: auto;
+  position: relative;
   width: 80px;
   height: 80px;
   display: flex;
@@ -1365,11 +1300,11 @@ button:focus {
 }
 
 .progress-ring {
-  position: absolute; /* Position it absolutely within the container */
+  position: absolute;
   top: 0;
   left: 0;
-  width: 80px; /* Set the width to match the container */
-  height: 80px; /* Set the height to match the container */
+  width: 80px;
+  height: 80px;
   transform: rotate(-90deg);
 }
 
@@ -1377,30 +1312,29 @@ button:focus {
   stroke: #dcf34f;
   stroke-width: 3.5;
   fill: transparent;
-  stroke-dasharray: 163.36; /* For r=26, circumference is 2 * PI * 26 */
-  stroke-dashoffset: 163.36; /* Start with the circle empty */
-  transition: stroke-dashoffset 1.5s linear; /* Smooth transition for filling */
+  stroke-dasharray: 163.36;
+  stroke-dashoffset: 163.36;
+  transition: stroke-dashoffset 1.5s linear;
 }
 
 .lottie-container {
   margin-top: 10px;
 }
 
-/* Custom scrollbar for WebKit browsers */
 .messages::-webkit-scrollbar {
-  width: 8px; /* Scrollbar width */
+  width: 8px;
 }
 
 .messages::-webkit-scrollbar-track {
-  background: #f1f1f1; /* Track color */
+  background: #f1f1f1;
 }
 
 .messages::-webkit-scrollbar-thumb {
-  background: #888; /* Thumb color */
+  background: #888;
 }
 
 .messages::-webkit-scrollbar-thumb:hover {
-  background: #555; /* Thumb hover color */
+  background: #555;
 }
 
 .tiblock {
@@ -1415,12 +1349,12 @@ button:focus {
 
 .tidot {
   background-color: #90949c;
-  border-radius: 50%; /* Make the dots circular */
+  border-radius: 50%;
   display: inline-block;
-  height: 8px; /* Adjust size as needed */
-  margin-right: 4px; /* Space between dots */
-  width: 8px; /* Adjust size as needed */
-  animation: mercuryTypingAnimation 1.5s infinite ease-in-out; /* Ensure animation applies */
+  height: 8px;
+  margin-right: 4px;
+  width: 8px;
+  animation: mercuryTypingAnimation 1.5s infinite ease-in-out;
 }
 
 @keyframes mercuryTypingAnimation {
@@ -1428,9 +1362,7 @@ button:focus {
     transform: translateY(0px);
   }
   28% {
-    transform: translateY(
-      -5px
-    ); /* Adjust this value to control the bounce height */
+    transform: translateY(-5px);
   }
   44% {
     transform: translateY(0px);
@@ -1441,19 +1373,19 @@ button:focus {
   animation-delay: 0s;
 }
 .tidot:nth-child(2) {
-  animation-delay: 0.15s; /* Slight delay for the second dot */
+  animation-delay: 0.15s;
 }
 .tidot:nth-child(3) {
-  animation-delay: 0.3s; /* Slight delay for the third dot */
+  animation-delay: 0.3s;
 }
 
 .message.assistant.typing::after {
   content: "_";
   display: inline-block;
   width: 1px;
-  background-color: #000; /* Adjust the color to match your design */
+  background-color: #000;
   animation: blink 1s step-end infinite;
-  margin-left: 2px; /* Optional: space between the text and the cursor */
+  margin-left: 2px;
 }
 
 @keyframes blink {
@@ -1477,10 +1409,10 @@ button:focus {
   background-color: #dcf34f;
   color: black;
   border: none;
-  width: 60px; /* Set a fixed width */
-  height: 60px; /* Set the same value for height */
-  font-size: 20px; /* Adjust icon size */
-  border-radius: 50%; /* Ensure it's perfectly round */
+  width: 60px;
+  height: 60px;
+  font-size: 20px;
+  border-radius: 50%;
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   z-index: 1000;
@@ -1503,13 +1435,13 @@ button:focus {
 
 .info-content h2,
 .info-content h3 {
-  margin-bottom: 5px; /* Reduced margin */
-  font-size: 20px; /* Slightly smaller font size */
+  margin-bottom: 5px;
+  font-size: 20px;
 }
 
 .info-content p,
 .info-content ul {
-  margin-bottom: 10px; /* Reduced margin */
+  margin-bottom: 10px;
   font-size: 18px;
 }
 
@@ -1543,10 +1475,10 @@ button:focus {
   max-width: 400px;
 }
 
-/* The blur effect when the modal is open */
+/* blur effect when the modal is open */
 .blur-background {
-  filter: blur(5px); /* Adjust the blur value as needed */
-  pointer-events: none; /* Prevent interaction with blurred content */
+  filter: blur(5px);
+  pointer-events: none;
 }
 
 .completion-content h2 {
@@ -1576,7 +1508,7 @@ button:focus {
   font-size: 15px;
 }
 
-/* New button for opening the completion modal */
+/* button for opening the completion modal */
 .completion-button {
   display: flex;
   align-items: center;

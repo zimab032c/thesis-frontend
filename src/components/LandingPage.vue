@@ -17,9 +17,14 @@
         </h2>
         <p>Dear participant,</p>
         <p>
-          Thank you for your interest in participating in this study. 
-          
-          This experiment is designed to deepen our current understanding of user experience with customer support chatbots. Each participant, including yourself, will interact with a specific version of a chatbot. Other participants may encounter different versions. By gathering feedback on these interactions, we aim to explore how design elements influence user perceptions of trust in chatbots within the customer support setting. 
+          Thank you for your interest in participating in this study. This
+          experiment is designed to deepen our current understanding of user
+          experience with customer support chatbots. Each participant, including
+          yourself, will interact with a specific version of a chatbot. Other
+          participants may encounter different versions. By gathering feedback
+          on these interactions, we aim to explore how design elements influence
+          user perceptions of trust in chatbots within the customer support
+          setting.
         </p>
       </section>
 
@@ -33,7 +38,7 @@
         <p>
           In this experiment, you will assume the role of a customer who has
           recently made several online purchases from a fictitious online
-          retailer. 
+          retailer.
         </p>
         <p>You’ve ordered three different items:</p>
         <ul class="list-disc pl-5">
@@ -50,7 +55,9 @@
         </ul>
         <p>
           Now, you need to manage these orders through the retailer’s customer
-          support chatbot. Your customer number is <strong><u>123-456</u></strong>. Here’s what you need to do:
+          support chatbot. Your customer number is
+          <strong><u>123-456</u></strong
+          >. Here’s what you need to do:
         </p>
         <ol class="list-decimal pl-5">
           <li>
@@ -62,12 +69,14 @@
             <strong>Change the Delivery Address for Order B:</strong> You
             realized that you accidentally entered your home address for Order
             B, but it’s meant to be delivered to your office. You want to update
-            the delivery address to ensure it arrives at the correct location. (You can invent your own office address, but please follow this exaple format: <strong>Büro Straße 1, 12345 Stadtname</strong>)
+            the delivery address to ensure it arrives at the correct location.
+            (You can invent your own office address, but please follow this
+            exaple format: <strong>Büro Straße 1, 12345 Stadtname</strong>)
           </li>
           <li>
             <strong>Return Order C:</strong> Unfortunately, Order C doesn’t fit
-            as expected. Since you know the retailer
-            has a 30-day return policy, you decide to initiate a return.
+            as expected. Since you know the retailer has a 30-day return policy,
+            you decide to initiate a return.
           </li>
         </ol>
       </section>
@@ -145,14 +154,14 @@ export default {
   },
   methods: {
     startChat() {
-      this.$router.push("/chat"); // Navigate to the chat route
+      this.$router.push("/chat");
     },
     simulateTyping(message, callback) {
       let index = 0;
       const minSpeed = 50;
       const maxSpeed = 150;
 
-      this.typingComplete = false; // Reset the typing complete flag
+      this.typingComplete = false;
 
       const typeNextChunk = () => {
         this.typedHeader = message.substring(0, index);
@@ -164,13 +173,12 @@ export default {
             Math.random() * (maxSpeed - minSpeed) + minSpeed
           );
         } else {
-          // this.typedHeader = message; // Complete the message without the underscore
-          this.typingComplete = true; // Set typing complete flag
+          this.typingComplete = true;
 
-          // Add a delay to remove the blinking cursor after typing is done
+          // remove cursor
           setTimeout(() => {
-            this.typedHeader = message; // Ensure the final message doesn't have the cursor
-          }, 100); // Adjust the delay as needed
+            this.typedHeader = message;
+          }, 100);
 
           if (callback) {
             callback();
@@ -219,9 +227,9 @@ h2 {
   content: "_";
   display: inline-block;
   width: 1px;
-  background-color: #000; /* Adjust the color to match your design */
+  background-color: #000;
   animation: blink 1s step-end infinite;
-  margin-left: 2px; /* Optional: space between the text and the cursor */
+  margin-left: 2px;
 }
 
 .typingComplete h1::after {
