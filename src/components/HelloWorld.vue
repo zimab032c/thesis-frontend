@@ -1,38 +1,13 @@
 <template>
-  <div class="chat-container">
+  <div
+    :class="{ 'blur-background': showCompletionModal || showInfoModal }"
+    class="chat-container"
+  >
     <audio ref="clickSound" src="/click.mp3" preload="auto" volume="1"></audio>
 
     <button @click="toggleInfoModal" class="info-button">
       <i class="fas fa-question"></i>
     </button>
-
-    <!-- Info Modal -->
-    <div v-if="showInfoModal" class="info-modal">
-      <div class="info-content">
-        <h2>Task Information</h2>
-        <p><strong>Your Customer Number:</strong> <u>123-456</u></p>
-        <p>
-          <strong>Office Address Format:</strong> Example: 123 Office St, 10115
-          Berlin
-        </p>
-        <h3>Tasks</h3>
-        <ul>
-          <li>
-            <strong>Track Order A:</strong> Check the status and expected
-            delivery date of Order A.
-          </li>
-          <li>
-            <strong>Modify Delivery Address for Order B:</strong> Change the
-            delivery address for Order B to your office.
-          </li>
-          <li>
-            <strong>Return Order C:</strong> Initiate a return for Order C
-            because it doesn’t fit.
-          </li>
-        </ul>
-        <button @click="toggleInfoModal" class="close-button">Close</button>
-      </div>
-    </div>
 
     <!-- Messages Container -->
     <div class="messages" ref="messagesContainer">
@@ -66,6 +41,7 @@
                 height="80"
               >
                 <circle
+                  ref="progressCircle"
                   class="progress-ring__circle"
                   stroke="#007bff"
                   stroke-width="5"
@@ -148,23 +124,79 @@
       </div>
     </div>
 
-    <!-- Completion Modal -->
-    <div v-if="showCompletionModal" class="completion-modal">
-      <div class="completion-content">
-        <h2>Tasks Completed</h2>
-        <p>You have completed all the required tasks.</p>
-        <p>
-          Would you like to proceed to the questionnaire or continue testing the
-          bot?
-        </p>
-        <div class="modal-buttons">
-          <button @click="proceedToQuestionnaire" class="proceed-button">
-            Proceed to Questionnaire
-          </button>
-          <button @click="continueTesting" class="continue-button">
-            Keep Testing the Bot
-          </button>
-        </div>
+    <!-- Completion Button (Always Visible for Now) -->
+    <button class="completion-button" @click="showCompletionModal = true">
+      <i class="fas fa-exclamation"></i>
+    </button>
+    <!-- Add this button outside the modal, at the bottom of the screen -->
+    <!-- <div
+      v-if="tasksCompleted && !showCompletionModal"
+      class="completion-button"
+    >
+      <button @click="showCompletionModal = true" class="open-modal-button">
+        <i class="fas fa-exclamation"></i>
+      </button>
+    </div> -->
+  </div>
+
+  <!-- Info Modal -->
+  <div v-if="showInfoModal" class="info-modal">
+    <div class="info-content">
+      <h2><strong>Help Menu</strong></h2>
+      <p>
+        This menu provides key task information for the experiment, matching
+        what you just read in your briefing.
+      </p>
+      <h3><strong>Tasks</strong></h3>
+
+      <div class="info-tasks">
+        <ul>
+          <li>
+            <strong>Track Order A:</strong> Check the status and expected
+            delivery date of Order A.
+          </li>
+          <li>
+            <strong>Modify Delivery Address for Order B:</strong> Change the
+            delivery address for Order B to your office.
+          </li>
+          <li>
+            <strong>Return Order C:</strong> Initiate a return for Order C
+            because it doesn’t fit.
+          </li>
+
+          <li><strong>Your Customer Number:</strong> <u>123-456</u></li>
+          <li>
+            <strong>Office Address Format:</strong> Example: Müller Straße 13,
+            10115 Berlin
+          </li>
+          <!-- <p><strong>Your Customer Number:</strong> 123-456</p>
+          <p>
+            <strong>Office Address Format:</strong> Müller Straße 13, 10115
+            Berlin
+          </p> -->
+        </ul>
+      </div>
+
+      <button @click="toggleInfoModal" class="close-button">Close</button>
+    </div>
+  </div>
+
+  <!-- Completion Modal -->
+  <div v-if="showCompletionModal" class="completion-modal">
+    <div class="completion-content">
+      <h2><strong>Tasks Completed</strong></h2>
+      <p>You have completed all the required tasks.</p>
+      <p>
+        Would you like to proceed to the questionnaire or continue testing the
+        bot?
+      </p>
+      <div class="modal-buttons">
+        <button @click="proceedToQuestionnaire" class="proceed-button">
+          Proceed to Questionnaire
+        </button>
+        <button @click="continueTesting" class="continue-button">
+          Keep Testing the Bot
+        </button>
       </div>
     </div>
   </div>
@@ -285,14 +317,40 @@ export default {
     }
   },
   methods: {
+    // Function to clean up the "(Previously Selected)" text for rendering
+    cleanOptionsForDisplay(options) {
+      console.log("Original options received:", options); // Log original options
+
+      const cleanedOptions = options.map((option) => {
+        const cleanedOption = option.replace(" (Previously Selected)", "");
+        console.log("Processed option:", cleanedOption); // Log each processed option
+        return cleanedOption;
+      });
+
+      console.log("Final cleaned options:", cleanedOptions); // Log the final cleaned options
+      return cleanedOptions;
+    },
     // Function to trigger modal when all tasks are completed
     showCompletionModalTrigger() {
-      this.showCompletionModal = true; // Show the modal
+      this.tasksCompleted = true; // Set tasksCompleted to true when tasks are done
     },
     // Redirects to the questionnaire
     proceedToQuestionnaire() {
-      window.location.href =
-        "https://docs.google.com/forms/d/e/1FAIpQLSczzL6ne5xJj3e91Q2XjETvT6MrqFDw4BSRl9ZmtMVpD9Rd5g/viewform?usp=sf_link"; // Replace with your Google Form link
+      const userId = sessionStorage.getItem("userId");
+
+      axios
+        .post("http://localhost:3000/api/end-session", {
+          userId,
+          sessionEnd: true, // Set sessionEnd flag to true
+        })
+        .then(() => {
+          // Redirect to the Google Form
+          window.location.href =
+            "https://docs.google.com/forms/d/e/1FAIpQLSczzL6ne5xJj3e91Q2XjETvT6MrqFDw4BSRl9ZmtMVpD9Rd5g/viewform?usp=sf_link";
+        })
+        .catch((error) => {
+          console.error("Error logging session end:", error);
+        });
     },
     // Keeps the user on the bot interface
     continueTesting() {
@@ -465,16 +523,29 @@ export default {
       return circumference - (progress / 100) * circumference;
     },
     updateOptions(newOptions) {
-      this.currentOptions = newOptions;
+      console.log("updateOptions - newOptions before cleaning:", newOptions); // Log the raw newOptions
+      const cleanedOptions = this.cleanOptionsForDisplay(newOptions);
+      console.log(
+        "updateOptions - cleanedOptions after cleaning:",
+        cleanedOptions
+      ); // Log the cleaned options
 
-      // Trigger reflow to restart CSS animations
+      // Clear currentOptions first
+      this.currentOptions = [];
+
+      // Wait for DOM update, then assign the cleaned options
       this.$nextTick(() => {
-        const buttons = document.querySelectorAll(".options button");
-        buttons.forEach((button) => {
-          //button.style.opacity = 0; // Reset opacity to trigger animation
-          button.style.animation = "none"; // Reset animation
-          button.offsetHeight; // Trigger reflow
-          button.style.animation = ""; // Restore animation
+        this.currentOptions = cleanedOptions;
+
+        // Trigger reflow to restart CSS animations
+        this.$nextTick(() => {
+          const buttons = document.querySelectorAll(".options button");
+          console.log("updateOptions - buttons rendered in DOM:", buttons); // Log the rendered buttons
+          buttons.forEach((button) => {
+            button.style.animation = "none"; // Reset animation
+            button.offsetHeight; // Trigger reflow
+            button.style.animation = ""; // Restore animation
+          });
         });
       });
     },
@@ -893,9 +964,17 @@ export default {
               const container = this.$refs.messagesContainer;
               container.scrollTop = container.scrollHeight; // Scroll to the bottom of the container
 
-              const circle = this.$el.querySelector(".progress-ring__circle");
-              this.setProgress(circle, 0); // Start at 0% (empty)
-              this.animateProgress(circle, this.insights); // Start animation
+              const circle = this.$refs.progressCircle; // Access the circle via ref
+
+              // Fix: Ensure the circle element exists before trying to set its progress
+              if (circle && circle.r && circle.r.baseVal) {
+                this.setProgress(circle, 0); // Start at 0% (empty)
+                this.animateProgress(circle, this.insights); // Start animation
+              } else {
+                console.error(
+                  "Progress circle not found or not fully initialized."
+                );
+              }
             });
 
             const totalDuration = this.insights.length * 1500 + 500;
@@ -1261,7 +1340,7 @@ button:hover {
 }
 
 button:active {
-  background-color: #b4bf4f;
+  /* background-color: #b4bf4f; */
   color: white;
   transform: translateY(1px);
 }
@@ -1408,10 +1487,6 @@ button:focus {
   z-index: 1000;
 }
 
-.info-button:hover {
-  background-color: #b4bf4f;
-}
-
 /* Info Modal */
 .info-modal {
   position: fixed;
@@ -1419,7 +1494,7 @@ button:focus {
   left: 50%;
   transform: translate(-50%, -50%);
   background-color: white;
-  padding: 20px;
+  padding: 15px;
   border-radius: 10px;
   box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
   z-index: 1000;
@@ -1429,20 +1504,20 @@ button:focus {
 
 .info-content h2,
 .info-content h3 {
-  margin-bottom: 10px;
+  margin-bottom: 5px; /* Reduced margin */
+  font-size: 20px; /* Slightly smaller font size */
 }
 
 .info-content p,
 .info-content ul {
-  margin-bottom: 20px;
+  margin-bottom: 10px; /* Reduced margin */
+  font-size: 18px;
 }
 
-.info-content ul {
-  padding-left: 20px;
-}
-
-.info-content ul li {
+.info-tasks ul li {
+  text-align: left;
   list-style-type: disc;
+  margin-left: 50px;
 }
 
 .close-button {
@@ -1452,10 +1527,6 @@ button:focus {
   padding: 10px 15px;
   cursor: pointer;
   border-radius: 5px;
-}
-
-.close-button:hover {
-  background-color: #b4bf4f;
 }
 
 /* Completion Modal */
@@ -1473,6 +1544,12 @@ button:focus {
   max-width: 400px;
 }
 
+/* The blur effect when the modal is open */
+.blur-background {
+  filter: blur(5px); /* Adjust the blur value as needed */
+  pointer-events: none; /* Prevent interaction with blurred content */
+}
+
 .completion-content h2 {
   margin-bottom: 20px;
   font-size: 24px;
@@ -1486,6 +1563,7 @@ button:focus {
 .modal-buttons {
   display: flex;
   justify-content: space-between;
+  gap: 20px;
 }
 
 .proceed-button,
@@ -1496,10 +1574,26 @@ button:focus {
   padding: 10px 20px;
   border-radius: 5px;
   cursor: pointer;
+  font-size: 15px;
 }
 
-.proceed-button:hover,
-.continue-button:hover {
-  background-color: #b4bf4f;
+/* New button for opening the completion modal */
+.completion-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: fixed;
+  bottom: 20px;
+  right: 100px;
+  background-color: #dcf34f;
+  color: black;
+  border: none;
+  width: 60px;
+  height: 60px;
+  font-size: 20px;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  z-index: 1000;
 }
 </style>
