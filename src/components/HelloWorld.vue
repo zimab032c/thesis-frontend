@@ -125,18 +125,18 @@
     </div>
 
     <!-- Completion Button (Always Visible for Now) -->
-    <button class="completion-button" @click="showCompletionModal = true">
+    <!-- <button class="completion-button" @click="showCompletionModal = true">
       <i class="fas fa-exclamation"></i>
-    </button>
+    </button> -->
     <!-- Add this button outside the modal, at the bottom of the screen -->
-    <!-- <div
+    <div
       v-if="tasksCompleted && !showCompletionModal"
       class="completion-button"
     >
       <button @click="showCompletionModal = true" class="open-modal-button">
         <i class="fas fa-exclamation"></i>
       </button>
-    </div> -->
+    </div>
   </div>
 
   <!-- Info Modal -->
