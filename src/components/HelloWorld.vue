@@ -253,11 +253,14 @@ export default {
     this.typingMessage = true;
 
     try {
-      //const response = await axios.post("https://thesis-backend-vd4s.onrender.com/api/chat", {
-      const response = await axios.post("http://localhost:3000/api/chat", {
-        userId,
-        message: "",
-      });
+      const response = await axios.post(
+        "https://thesis-backend-vd4s.onrender.com/api/chat",
+        {
+          // const response = await axios.post("http://localhost:3000/api/chat", {
+          userId,
+          message: "",
+        }
+      );
 
       this.typingMessage = false;
 
@@ -861,12 +864,15 @@ export default {
       }
 
       try {
-        // const response = await axios.post("https://thesis-backend-vd4s.onrender.com/api/chat", {
-        const response = await axios.post("http://localhost:3000/api/chat", {
-          userId,
-          message: this.userMessage,
-          delay: this.responseDelay,
-        });
+        const response = await axios.post(
+          "https://thesis-backend-vd4s.onrender.com/api/chat",
+          {
+            // const response = await axios.post("http://localhost:3000/api/chat", {
+            userId,
+            message: this.userMessage,
+            delay: this.responseDelay,
+          }
+        );
 
         // parse order from bot response
         const parsedOrder = this.parseOrderFromResponse(response.data.reply);
