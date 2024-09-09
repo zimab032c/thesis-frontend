@@ -462,6 +462,9 @@ export default {
         "where is my order",
         "track my order",
         "check order status",
+        "currently",
+        "where is order",
+        "where is",
       ];
       const lowercasedMessage = message.toLowerCase();
       return trackingKeywords.some((keyword) =>
@@ -545,13 +548,13 @@ export default {
         ringWidth +
         paddingAdjustment;
     },
-
     simulateTyping(message, callback) {
       let index = 0;
-      const minSpeed = 5;
-      const maxSpeed = 10;
-      const shortPause = 50;
-      const longPause = 100;
+      const minSpeed = 50;
+      const maxSpeed = 100;
+      const shortPause = 800;
+      const longPause = 1800;
+      const endPause = 2000;
       const minSentenceLengthForPause = 15;
       const keyPauseWords = [
         "therefore",
@@ -560,6 +563,7 @@ export default {
         "thus",
         "but",
         "?",
+        "!",
       ];
       // clean the message of any options before typing
       const cleanedMessage = message.replace(/Options:.+$/, "").trim();
@@ -611,16 +615,109 @@ export default {
 
           setTimeout(typeNextChunk, delay);
         } else {
-          // remove "typing" class after typing is complete
-          messageElement.typing = false;
-          if (callback) {
-            callback();
-          }
+          // Add a small pause at the end to simulate "thinking"
+          setTimeout(() => {
+            messageElement.typing = false; // Remove the typing indicator after the pause
+            if (callback) {
+              callback(); // Execute callback after typing is complete
+            }
+          }, endPause); // Pause before finishing typing
         }
       };
 
       typeNextChunk(); // Start typing
     },
+
+    // simulateTyping(message, callback) {
+    //   let index = 0;
+    //   const minSpeed = 50;
+    //   const maxSpeed = 100;
+    //   const shortPause = 600 + Math.random() * 400; // Add variation to short pause
+    //   const longPause = 1500 + Math.random() * 600; // Add variation to long pause
+    //   const minSentenceLengthForPause = 15;
+    //   const keyPauseWords = [
+    //     "therefore",
+    //     "however",
+    //     "because",
+    //     "thus",
+    //     "but",
+    //     "?",
+    //     "!",
+    //   ];
+
+    //   // Clean the message of any options before typing
+    //   const cleanedMessage = message.replace(/Options:.+$/, "").trim();
+
+    //   const messageElement = this.chatMessages[this.chatMessages.length - 1];
+    //   messageElement.typing = true;
+
+    //   const typeNextChunk = () => {
+    //     const remainingText = cleanedMessage.substring(index);
+
+    //     // Random chunk size between 2 and 6 characters to introduce more variation
+    //     let chunkSize = Math.min(
+    //       Math.floor(Math.random() * 5) + 2,
+    //       remainingText.length
+    //     );
+    //     let nextChunk = remainingText.substring(0, chunkSize);
+
+    //     const periodIndex = nextChunk.indexOf(".");
+    //     const commaIndex = nextChunk.indexOf(",");
+    //     const keyWordPause = keyPauseWords.some((word) =>
+    //       nextChunk.includes(word)
+    //     );
+    //     const sentenceLength = messageElement.content.split(" ").length;
+
+    //     // Stop at the period or comma if found within the chunk
+    //     if (periodIndex !== -1 && periodIndex < chunkSize - 1) {
+    //       chunkSize = periodIndex + 1;
+    //       nextChunk = remainingText.substring(0, chunkSize);
+    //     } else if (commaIndex !== -1 && commaIndex < chunkSize - 1) {
+    //       chunkSize = commaIndex + 1;
+    //       nextChunk = remainingText.substring(0, chunkSize);
+    //     }
+
+    //     // Add the next chunk of text
+    //     messageElement.content += nextChunk;
+    //     index += chunkSize;
+
+    //     // Auto-scroll the chat container
+    //     this.$nextTick(() => {
+    //       const container = this.$refs.messagesContainer;
+    //       container.scrollTop = container.scrollHeight;
+    //     });
+
+    //     if (index < cleanedMessage.length) {
+    //       let delay;
+
+    //       // Pausing logic based on sentence structure or keyword
+    //       if (
+    //         nextChunk.includes(".") ||
+    //         nextChunk.includes(",") ||
+    //         keyWordPause
+    //       ) {
+    //         // Randomize pause lengths to make it feel more natural
+    //         if (sentenceLength >= minSentenceLengthForPause || keyWordPause) {
+    //           delay = Math.random() < 0.5 ? longPause : shortPause; // Randomize between long/short pauses
+    //         } else {
+    //           delay = shortPause;
+    //         }
+    //       } else {
+    //         delay = Math.random() * (maxSpeed - minSpeed) + minSpeed; // Normal typing speed
+    //       }
+
+    //       setTimeout(typeNextChunk, delay);
+    //     } else {
+    //       // Remove the "typing" state and execute the callback when done
+    //       messageElement.typing = false;
+    //       if (callback) {
+    //         callback();
+    //       }
+    //     }
+    //   };
+
+    //   typeNextChunk(); // Start typing
+    // },
 
     // risky
     setProgress(circle, percent) {
@@ -802,7 +899,7 @@ export default {
             "Attempting to generate return label...",
             "Encountering issues with shipment provider...",
             "Escalating to human representative...",
-            "Special PILL",
+            // "Special PILL",
           ];
           console.log("Insights for returning Order C:", this.insights);
         } else if (
@@ -813,12 +910,12 @@ export default {
         ) {
           this.showProgressBar = true;
           this.insights = [
-            "Costumer Num Pill Success",
+            // "Costumer Num Pill Success",
             "Accessing Customer Database...",
             "Verifying Customer Identity...",
             "Retrieving Order History...",
             "Operation Complete",
-            "Costumer Num Pill Success",
+            // "Costumer Num Pill Success",
           ];
         } else if (
           response.data.reply.includes(
@@ -827,12 +924,12 @@ export default {
         ) {
           this.showProgressBar = true;
           this.insights = [
-            "Costumer Num Pill FAIl",
+            // "Costumer Num Pill FAIl",
             "Accessing Customer Database...",
             "Verifying Customer Identity...",
             "Retrieving Order History...",
             "Operation Complete",
-            "Costumer Num Pill FAIl",
+            // "Costumer Num Pill FAIl",
           ];
         } else if (this.detectTrackingKeywords(this.userMessage)) {
           this.showProgressBar = true;
@@ -841,7 +938,7 @@ export default {
             "Accessing Shipment Provider Database...",
             "Fetching Current Shipment Status...",
             "Operations Complete.",
-            "Tracking Pill",
+            // "Tracking Pill",
           ];
         } else if (this.detectAddress(this.userMessage)) {
           this.showProgressBar = true;
@@ -850,28 +947,28 @@ export default {
             "Updating Order Details...",
             "Notifying Delivery Service Provider...",
             "Recalculating Delivery Time...",
-            "Mod Addy Pill",
+            // "Mod Addy Pill",
           ];
         } else if (this.detectCancelKeywords(this.userMessage)) {
           this.showProgressBar = true;
           this.insights = [
             "Verifying Order Status...",
             "Checking Cancellation Policy...",
-            "Cancel Pill",
+            // "Cancel Pill",
           ];
         } else if (this.detectReturnKeywords(this.userMessage)) {
           this.showProgressBar = true;
           this.insights = [
             "Checking Return Policy...",
             "Verifying Product Eligibility...",
-            "Return Pill",
+            // "Return Pill",
           ];
         } else if (this.detectGiftMessage(this.userMessage)) {
           this.showProgressBar = true;
           this.insights = [
             "Adding Gift Message...",
             "Updating Order Details...",
-            "Gift Pill",
+            // "Gift Pill",
           ];
         } else {
           this.showProgressBar = false;
