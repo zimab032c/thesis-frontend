@@ -130,11 +130,18 @@
     <div
       v-if="tasksCompleted && !showCompletionModal"
       class="completion-button"
+      @click="showCompletionModal = true"
     >
-      <button @click="showCompletionModal = true" class="open-modal-button">
+      <button class="open-modal-button">
         <i class="fas fa-exclamation"></i>
       </button>
     </div>
+    <!-- Completion Button -->
+    <!-- <div class="completion-button" @click="showCompletionModal = true">
+      <button class="open-modal-button">
+        <i class="fas fa-exclamation"></i>
+      </button>
+    </div> -->
   </div>
 
   <!-- Info Modal -->
@@ -243,6 +250,7 @@ export default {
 
     clickSound.volume = 1;
   },
+
   async created() {
     let userId = sessionStorage.getItem("userId");
     if (!userId) {
@@ -292,54 +300,11 @@ export default {
       });
     }
   },
+
   methods: {
-    // clean up the "(Previously Selected)" text for rendering
-    cleanOptionsForDisplay(options) {
-      console.log("Original options received:", options);
-
-      const cleanedOptions = options.map((option) => {
-        const cleanedOption = option.replace(" (Previously Selected)", "");
-        console.log("Processed option:", cleanedOption);
-        return cleanedOption;
-      });
-
-      console.log("Final cleaned options:", cleanedOptions);
-      return cleanedOptions;
-    },
-
-    // trigger modal when all tasks are completed
-    showCompletionModalTrigger() {
-      this.tasksCompleted = true;
-    },
-
-    // redirects to the questionnaire
-    proceedToQuestionnaire() {
-      const userId = sessionStorage.getItem("userId");
-
-      axios
-        .post("http://localhost:3000/api/end-session", {
-          userId,
-          sessionEnd: true,
-        })
-        .then(() => {
-          // Redirect to the Google Form
-          window.location.href =
-            "https://docs.google.com/forms/d/e/1FAIpQLSczzL6ne5xJj3e91Q2XjETvT6MrqFDw4BSRl9ZmtMVpD9Rd5g/viewform?usp=sf_link";
-        })
-        .catch((error) => {
-          console.error("Error logging session end:", error);
-        });
-    },
-
-    // if user wants to continue testing
-    continueTesting() {
-      this.showCompletionModal = false;
-    },
-
-    toggleInfoModal() {
-      this.showInfoModal = !this.showInfoModal;
-    },
-
+    /**
+     * Set up Functions
+     */
     resetChat() {
       this.userMessage = "";
       this.chatMessages = [];
@@ -354,63 +319,13 @@ export default {
       });
     },
 
-    // click sound for send button
-    playSoundAndSendMessage() {
-      const clickSound = this.$refs.clickSound;
-
-      clickSound
-        .play()
-        .then(() => {
-          console.log("Sound played successfully via Send Button");
-          this.sendMessage();
-        })
-        .catch((error) => {
-          console.error("Error playing sound via Send Button:", error);
-          this.sendMessage();
-        });
-    },
-
-    // click sound for option buttons
-    playSoundAndSendOption(option) {
-      const clickSound = this.$refs.clickSound;
-
-      clickSound
-        .play()
-        .then(() => {
-          console.log("Sound played successfully via Option Button");
-          this.sendOption(option);
-        })
-        .catch((error) => {
-          console.error("Error playing sound via Option Button:", error);
-          this.sendOption(option);
-        });
-    },
-
-    // converts option buttons into complete answeres
-    getFullUserMessage(input) {
-      const order = this.currentOrder || "B";
-
-      const userMessages = {
-        Track: `I'd like to receive tracking information regarding Order ${order}.`,
-        Cancel: `I want to cancel order ${order}.`,
-        "Cancel (disabled)": `I want to cancel order ${order}.`,
-        Return: `I'd like to return Order ${order}.`,
-        Modify: `I want to modify my order details for Order ${order}.`,
-        "Modify (disabled)": `I want to modify my order details for Order ${order}.`,
-        "Modify Delivery Address": `I'd like to modify the delivery address for Order ${order}.`,
-        "Add Gift Message": `I'd like to add a gift message to Order ${order}.`,
-        "Back to Order Operations": `I'd like to go back to the main order operations menu.`,
-        "Back to Order Selection": `I want to go back and select a different order to manage.`,
-      };
-
-      // exclude custom input
-      return userMessages[input] || input;
-    },
-
     setCurrentOrder(order) {
       this.currentOrder = order;
     },
 
+    /**
+     * Detection Functions to trigger Pills
+     */
     parseOrderFromResponse(responseText) {
       const orderPattern = /(\*\*|__)?Order\s([A-Z])(\*\*|__)?/;
       const match = responseText.match(orderPattern);
@@ -496,38 +411,9 @@ export default {
       );
     },
 
-    calculateStrokeDashoffset(progress) {
-      const radius = 26;
-      const circumference = radius * 2 * Math.PI;
-      return circumference - (progress / 100) * circumference;
-    },
-
-    updateOptions(newOptions) {
-      console.log("updateOptions - newOptions before cleaning:", newOptions);
-      const cleanedOptions = this.cleanOptionsForDisplay(newOptions);
-      console.log(
-        "updateOptions - cleanedOptions after cleaning:",
-        cleanedOptions
-      );
-
-      this.currentOptions = [];
-
-      // waiting for dom update
-      this.$nextTick(() => {
-        this.currentOptions = cleanedOptions;
-
-        this.$nextTick(() => {
-          const buttons = document.querySelectorAll(".options button");
-          console.log("updateOptions - buttons rendered in DOM:", buttons);
-          buttons.forEach((button) => {
-            button.style.animation = "none";
-            button.offsetHeight;
-            button.style.animation = "";
-          });
-        });
-      });
-    },
-
+    /**
+     * Pill Message Functions
+     */
     calculateMaxInsightWidth() {
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
@@ -550,213 +436,6 @@ export default {
         marginAdjustment +
         ringWidth +
         paddingAdjustment;
-    },
-    simulateTyping(message, callback) {
-      let index = 0;
-      const minSpeed = 50;
-      const maxSpeed = 100;
-      const shortPause = 800;
-      const longPause = 1800;
-      const endPause = 2000;
-      const minSentenceLengthForPause = 15;
-      const keyPauseWords = [
-        "therefore",
-        "however",
-        "because",
-        "thus",
-        "but",
-        "?",
-        "!",
-      ];
-      // clean the message of any options before typing
-      const cleanedMessage = message.replace(/Options:.+$/, "").trim();
-
-      const messageElement = this.chatMessages[this.chatMessages.length - 1];
-      messageElement.typing = true;
-
-      const typeNextChunk = () => {
-        const remainingText = cleanedMessage.substring(index);
-        let chunkSize = Math.min(
-          Math.floor(Math.random() * 3) + 2,
-          remainingText.length
-        );
-        // random chunk size
-        let nextChunk = remainingText.substring(0, chunkSize);
-
-        const periodIndex = nextChunk.indexOf(".");
-        const keyWordPause = keyPauseWords.some((word) =>
-          nextChunk.includes(word)
-        );
-        const sentenceLength = messageElement.content.split(" ").length;
-
-        if (periodIndex !== -1 && periodIndex < chunkSize - 1) {
-          chunkSize = periodIndex + 1;
-          nextChunk = remainingText.substring(0, chunkSize);
-        }
-
-        messageElement.content += nextChunk;
-        index += chunkSize;
-
-        // auto scroll
-        this.$nextTick(() => {
-          const container = this.$refs.messagesContainer;
-          container.scrollTop = container.scrollHeight;
-        });
-
-        if (index < cleanedMessage.length) {
-          let delay;
-
-          if (nextChunk.includes(".") || keyWordPause) {
-            if (sentenceLength >= minSentenceLengthForPause || keyWordPause) {
-              delay = longPause;
-            } else {
-              delay = shortPause;
-            }
-          } else {
-            delay = Math.random() * (maxSpeed - minSpeed) + minSpeed;
-          }
-
-          setTimeout(typeNextChunk, delay);
-        } else {
-          // Add a small pause at the end to simulate "thinking"
-          setTimeout(() => {
-            messageElement.typing = false; // Remove the typing indicator after the pause
-            if (callback) {
-              callback(); // Execute callback after typing is complete
-            }
-          }, endPause); // Pause before finishing typing
-        }
-      };
-
-      typeNextChunk(); // Start typing
-    },
-
-    // simulateTyping(message, callback) {
-    //   let index = 0;
-    //   const minSpeed = 50;
-    //   const maxSpeed = 100;
-    //   const shortPause = 600 + Math.random() * 400; // Add variation to short pause
-    //   const longPause = 1500 + Math.random() * 600; // Add variation to long pause
-    //   const minSentenceLengthForPause = 15;
-    //   const keyPauseWords = [
-    //     "therefore",
-    //     "however",
-    //     "because",
-    //     "thus",
-    //     "but",
-    //     "?",
-    //     "!",
-    //   ];
-
-    //   // Clean the message of any options before typing
-    //   const cleanedMessage = message.replace(/Options:.+$/, "").trim();
-
-    //   const messageElement = this.chatMessages[this.chatMessages.length - 1];
-    //   messageElement.typing = true;
-
-    //   const typeNextChunk = () => {
-    //     const remainingText = cleanedMessage.substring(index);
-
-    //     // Random chunk size between 2 and 6 characters to introduce more variation
-    //     let chunkSize = Math.min(
-    //       Math.floor(Math.random() * 5) + 2,
-    //       remainingText.length
-    //     );
-    //     let nextChunk = remainingText.substring(0, chunkSize);
-
-    //     const periodIndex = nextChunk.indexOf(".");
-    //     const commaIndex = nextChunk.indexOf(",");
-    //     const keyWordPause = keyPauseWords.some((word) =>
-    //       nextChunk.includes(word)
-    //     );
-    //     const sentenceLength = messageElement.content.split(" ").length;
-
-    //     // Stop at the period or comma if found within the chunk
-    //     if (periodIndex !== -1 && periodIndex < chunkSize - 1) {
-    //       chunkSize = periodIndex + 1;
-    //       nextChunk = remainingText.substring(0, chunkSize);
-    //     } else if (commaIndex !== -1 && commaIndex < chunkSize - 1) {
-    //       chunkSize = commaIndex + 1;
-    //       nextChunk = remainingText.substring(0, chunkSize);
-    //     }
-
-    //     // Add the next chunk of text
-    //     messageElement.content += nextChunk;
-    //     index += chunkSize;
-
-    //     // Auto-scroll the chat container
-    //     this.$nextTick(() => {
-    //       const container = this.$refs.messagesContainer;
-    //       container.scrollTop = container.scrollHeight;
-    //     });
-
-    //     if (index < cleanedMessage.length) {
-    //       let delay;
-
-    //       // Pausing logic based on sentence structure or keyword
-    //       if (
-    //         nextChunk.includes(".") ||
-    //         nextChunk.includes(",") ||
-    //         keyWordPause
-    //       ) {
-    //         // Randomize pause lengths to make it feel more natural
-    //         if (sentenceLength >= minSentenceLengthForPause || keyWordPause) {
-    //           delay = Math.random() < 0.5 ? longPause : shortPause; // Randomize between long/short pauses
-    //         } else {
-    //           delay = shortPause;
-    //         }
-    //       } else {
-    //         delay = Math.random() * (maxSpeed - minSpeed) + minSpeed; // Normal typing speed
-    //       }
-
-    //       setTimeout(typeNextChunk, delay);
-    //     } else {
-    //       // Remove the "typing" state and execute the callback when done
-    //       messageElement.typing = false;
-    //       if (callback) {
-    //         callback();
-    //       }
-    //     }
-    //   };
-
-    //   typeNextChunk(); // Start typing
-    // },
-
-    // risky
-    setProgress(circle, percent) {
-      const radius = circle.r.baseVal.value;
-      const circumference = radius * 2 * Math.PI;
-
-      circle.style.strokeDasharray = `${circumference} ${circumference}`;
-
-      // if its the final segment, ensure the offset is exactly 0
-      let offset = circumference - (percent / 100) * circumference;
-      if (percent >= 99.9) {
-        offset = 0;
-      }
-
-      circle.style.strokeDashoffset = offset;
-    },
-    animateProgress(circle, insights) {
-      const totalInsights = insights.length;
-      // calculate segment size
-      const segment = 100 / totalInsights;
-      // duration for each segment
-      const segmentDuration = 1500;
-
-      insights.forEach((insight, index) => {
-        setTimeout(() => {
-          this.currentInsight = insight;
-          let progress = Math.min((index + 1) * segment, 100);
-
-          // last segment should set the progress to exactly 100%
-          if (index === totalInsights - 1) {
-            progress = 100;
-          }
-          // set progress for current segment
-          this.setProgress(circle, progress);
-        }, index * segmentDuration); // pause for 1.5 seconds between segments
-      });
     },
 
     startCyclingInsights(pillIndex) {
@@ -795,8 +474,48 @@ export default {
       }
     },
 
-    toggleLottieAnimation() {
-      this.showLottieAnimation = !this.showLottieAnimation;
+    calculateStrokeDashoffset(progress) {
+      const radius = 26;
+      const circumference = radius * 2 * Math.PI;
+      return circumference - (progress / 100) * circumference;
+    },
+
+    // risky
+    setProgress(circle, percent) {
+      const radius = circle.r.baseVal.value;
+      const circumference = radius * 2 * Math.PI;
+
+      circle.style.strokeDasharray = `${circumference} ${circumference}`;
+
+      // if its the final segment, ensure the offset is exactly 0
+      let offset = circumference - (percent / 100) * circumference;
+      if (percent >= 99.9) {
+        offset = 0;
+      }
+
+      circle.style.strokeDashoffset = offset;
+    },
+
+    animateProgress(circle, insights) {
+      const totalInsights = insights.length;
+      // calculate segment size
+      const segment = 100 / totalInsights;
+      // duration for each segment
+      const segmentDuration = 1500;
+
+      insights.forEach((insight, index) => {
+        setTimeout(() => {
+          this.currentInsight = insight;
+          let progress = Math.min((index + 1) * segment, 100);
+
+          // last segment should set the progress to exactly 100%
+          if (index === totalInsights - 1) {
+            progress = 100;
+          }
+          // set progress for current segment
+          this.setProgress(circle, progress);
+        }, index * segmentDuration); // pause for 1.5 seconds between segments
+      });
     },
 
     startPillAnimation(pillIndex) {
@@ -837,6 +556,13 @@ export default {
       });
     },
 
+    toggleLottieAnimation() {
+      this.showLottieAnimation = !this.showLottieAnimation;
+    },
+
+    /**
+     * Sending Messages Functions
+     */
     async sendMessage(isOption = false) {
       if (this.userMessage.trim() === "") return;
 
@@ -1088,6 +814,147 @@ export default {
       this.userMessage = "";
     },
 
+    simulateTyping(message, callback) {
+      let index = 0;
+      const minSpeed = 5;
+      const maxSpeed = 10;
+      const shortPause = 8;
+      const longPause = 18;
+      const endPause = 2;
+      const minSentenceLengthForPause = 15;
+      const keyPauseWords = [
+        "therefore",
+        "however",
+        "because",
+        "thus",
+        "but",
+        "?",
+        "!",
+      ];
+      // clean the message of any options before typing
+      const cleanedMessage = message.replace(/Options:.+$/, "").trim();
+
+      const messageElement = this.chatMessages[this.chatMessages.length - 1];
+      messageElement.typing = true;
+
+      const typeNextChunk = () => {
+        const remainingText = cleanedMessage.substring(index);
+        let chunkSize = Math.min(
+          Math.floor(Math.random() * 3) + 2,
+          remainingText.length
+        );
+        // random chunk size
+        let nextChunk = remainingText.substring(0, chunkSize);
+
+        const periodIndex = nextChunk.indexOf(".");
+        const keyWordPause = keyPauseWords.some((word) =>
+          nextChunk.includes(word)
+        );
+        const sentenceLength = messageElement.content.split(" ").length;
+
+        if (periodIndex !== -1 && periodIndex < chunkSize - 1) {
+          chunkSize = periodIndex + 1;
+          nextChunk = remainingText.substring(0, chunkSize);
+        }
+
+        messageElement.content += nextChunk;
+        index += chunkSize;
+
+        // auto scroll
+        this.$nextTick(() => {
+          const container = this.$refs.messagesContainer;
+          container.scrollTop = container.scrollHeight;
+        });
+
+        if (index < cleanedMessage.length) {
+          let delay;
+
+          if (nextChunk.includes(".") || keyWordPause) {
+            if (sentenceLength >= minSentenceLengthForPause || keyWordPause) {
+              delay = longPause;
+            } else {
+              delay = shortPause;
+            }
+          } else {
+            delay = Math.random() * (maxSpeed - minSpeed) + minSpeed;
+          }
+
+          setTimeout(typeNextChunk, delay);
+        } else {
+          // Add a small pause at the end to simulate "thinking"
+          setTimeout(() => {
+            messageElement.typing = false; // Remove the typing indicator after the pause
+            if (callback) {
+              callback(); // Execute callback after typing is complete
+            }
+          }, endPause); // Pause before finishing typing
+        }
+      };
+
+      typeNextChunk(); // Start typing
+    },
+
+    // converts option buttons into complete answeres
+    getFullUserMessage(input) {
+      const order = this.currentOrder || "B";
+
+      const userMessages = {
+        Track: `I'd like to receive tracking information regarding Order ${order}.`,
+        Cancel: `I want to cancel order ${order}.`,
+        "Cancel (disabled)": `I want to cancel order ${order}.`,
+        Return: `I'd like to return Order ${order}.`,
+        Modify: `I want to modify my order details for Order ${order}.`,
+        "Modify (disabled)": `I want to modify my order details for Order ${order}.`,
+        "Modify Delivery Address": `I'd like to modify the delivery address for Order ${order}.`,
+        "Add Gift Message": `I'd like to add a gift message to Order ${order}.`,
+        "Back to Order Operations": `I'd like to go back to the main order operations menu.`,
+        "Back to Order Selection": `I want to go back and select a different order to manage.`,
+      };
+
+      // exclude custom input
+      return userMessages[input] || input;
+    },
+
+    updateOptions(newOptions) {
+      console.log("updateOptions - newOptions before cleaning:", newOptions);
+      const cleanedOptions = this.cleanOptionsForDisplay(newOptions);
+      console.log(
+        "updateOptions - cleanedOptions after cleaning:",
+        cleanedOptions
+      );
+
+      this.currentOptions = [];
+
+      // waiting for dom update
+      this.$nextTick(() => {
+        this.currentOptions = cleanedOptions;
+
+        this.$nextTick(() => {
+          const buttons = document.querySelectorAll(".options button");
+          console.log("updateOptions - buttons rendered in DOM:", buttons);
+          buttons.forEach((button) => {
+            button.style.animation = "none";
+            button.offsetHeight;
+            button.style.animation = "";
+          });
+        });
+      });
+    },
+
+    // clean up the "(Previously Selected)" text for rendering
+    cleanOptionsForDisplay(options) {
+      console.log("Original options received:", options);
+
+      const cleanedOptions = options.map((option) => {
+        const cleanedOption = option.replace(" (Previously Selected)", "");
+        console.log("Processed option:", cleanedOption);
+        return cleanedOption;
+      });
+
+      console.log("Final cleaned options:", cleanedOptions);
+      return cleanedOptions;
+    },
+
     // modified sendOption method
     sendOption(option) {
       const fullUserMessage = this.getFullUserMessage(option);
@@ -1104,6 +971,74 @@ export default {
     },
     handleUserInput() {
       this.sendMessage(false);
+    },
+
+    // click sound for send button
+    playSoundAndSendMessage() {
+      const clickSound = this.$refs.clickSound;
+
+      clickSound
+        .play()
+        .then(() => {
+          console.log("Sound played successfully via Send Button");
+          this.sendMessage();
+        })
+        .catch((error) => {
+          console.error("Error playing sound via Send Button:", error);
+          this.sendMessage();
+        });
+    },
+
+    // click sound for option buttons
+    playSoundAndSendOption(option) {
+      const clickSound = this.$refs.clickSound;
+
+      clickSound
+        .play()
+        .then(() => {
+          console.log("Sound played successfully via Option Button");
+          this.sendOption(option);
+        })
+        .catch((error) => {
+          console.error("Error playing sound via Option Button:", error);
+          this.sendOption(option);
+        });
+    },
+
+    /**
+     * Modal Functions
+     */
+    // trigger modal when all tasks are completed
+    showCompletionModalTrigger() {
+      this.tasksCompleted = true;
+    },
+
+    // redirects to the questionnaire
+    proceedToQuestionnaire() {
+      const userId = sessionStorage.getItem("userId");
+
+      axios
+        .post("http://localhost:3000/api/end-session", {
+          userId,
+          sessionEnd: true,
+        })
+        .then(() => {
+          // Redirect to the Google Form
+          window.location.href =
+            "https://docs.google.com/forms/d/e/1FAIpQLSczzL6ne5xJj3e91Q2XjETvT6MrqFDw4BSRl9ZmtMVpD9Rd5g/viewform?usp=sf_link";
+        })
+        .catch((error) => {
+          console.error("Error logging session end:", error);
+        });
+    },
+
+    // if user wants to continue testing
+    continueTesting() {
+      this.showCompletionModal = false;
+    },
+
+    toggleInfoModal() {
+      this.showInfoModal = !this.showInfoModal;
     },
   },
 };
@@ -1629,5 +1564,13 @@ button:focus {
   cursor: pointer;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   z-index: 1000;
+}
+
+/* Add hover effect for Completion Button */
+.completion-button:hover {
+  background-color: #dcf34f;
+  color: #141e22;
+  transform: translateY(3px);
+  box-shadow: 0 6px 12px rgba(220, 243, 79, 0.5);
 }
 </style>
