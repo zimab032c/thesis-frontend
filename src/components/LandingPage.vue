@@ -190,7 +190,7 @@ export default {
     },
   },
   mounted() {
-    this.simulateTyping("Welcome to the Customer Support Chatbot Study");
+    this.simulateTyping("Welcome to the demo");
   },
 };
 </script>
