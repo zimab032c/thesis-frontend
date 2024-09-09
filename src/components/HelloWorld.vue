@@ -136,7 +136,7 @@
         <i class="fas fa-exclamation"></i>
       </button>
     </div>
-    <!-- Completion Button -->
+    <!-- Completion Button Permanent -->
     <!-- <div class="completion-button" @click="showCompletionModal = true">
       <button class="open-modal-button">
         <i class="fas fa-exclamation"></i>
@@ -279,11 +279,10 @@ export default {
         type: "text",
       });
 
-      // simulate the typing effect
       this.simulateTyping(response.data.reply, () => {
         this.typingMessage = false;
 
-        // set the available options after typing is complete
+        // set available options after typing is complete
         this.currentOptions = response.data.options || [];
 
         this.$nextTick(() => {
@@ -303,7 +302,7 @@ export default {
 
   methods: {
     /**
-     * Set up Functions
+     * initialization functions
      */
     resetChat() {
       this.userMessage = "";
@@ -324,7 +323,7 @@ export default {
     },
 
     /**
-     * Detection Functions to trigger Pills
+     * detection functions for pill messages
      */
     parseOrderFromResponse(responseText) {
       const orderPattern = /(\*\*|__)?Order\s([A-Z])(\*\*|__)?/;
@@ -340,7 +339,6 @@ export default {
       return this.pillMessages[pillIndex]?.isSpecial || false;
     },
 
-    // Detection Functions for Pill Messages
     detectGiftMessage(message) {
       const giftKeywords = [
         "present",
@@ -367,7 +365,6 @@ export default {
       return keywordMatch || patternMatch;
     },
     detectAddress(message) {
-      //more flexible than before
       const AddressPattern =
         /\b[A-Za-zßäöüÄÖÜ]+\s+\d+[a-zA-Z]?\s*,?\s*\d+\s+?[A-Za-zßäöüÄÖÜ]+\b/i;
       return AddressPattern.test(message);
@@ -412,7 +409,7 @@ export default {
     },
 
     /**
-     * Pill Message Functions
+     * pill message functions
      */
     calculateMaxInsightWidth() {
       const canvas = document.createElement("canvas");
@@ -480,14 +477,12 @@ export default {
       return circumference - (progress / 100) * circumference;
     },
 
-    // risky
     setProgress(circle, percent) {
       const radius = circle.r.baseVal.value;
       const circumference = radius * 2 * Math.PI;
 
       circle.style.strokeDasharray = `${circumference} ${circumference}`;
 
-      // if its the final segment, ensure the offset is exactly 0
       let offset = circumference - (percent / 100) * circumference;
       if (percent >= 99.9) {
         offset = 0;
@@ -508,13 +503,12 @@ export default {
           this.currentInsight = insight;
           let progress = Math.min((index + 1) * segment, 100);
 
-          // last segment should set the progress to exactly 100%
           if (index === totalInsights - 1) {
             progress = 100;
           }
           // set progress for current segment
           this.setProgress(circle, progress);
-        }, index * segmentDuration); // pause for 1.5 seconds between segments
+        }, index * segmentDuration);
       });
     },
 
@@ -561,12 +555,12 @@ export default {
     },
 
     /**
-     * Sending Messages Functions
+     * communication functions
      */
     async sendMessage(isOption = false) {
       if (this.userMessage.trim() === "") return;
 
-      // send custom user input
+      // send custom user input directly
       if (!isOption) {
         this.chatMessages.push({
           role: "user",
@@ -604,7 +598,7 @@ export default {
         const parsedOrder = this.parseOrderFromResponse(response.data.reply);
         if (parsedOrder) {
           this.setCurrentOrder(parsedOrder);
-          // debugging log
+          // debug log
           console.log(`Order detected and set: ${parsedOrder}`);
         } else {
           console.log("No order detected in the response");
@@ -729,14 +723,13 @@ export default {
 
             this.startPillAnimation(this.pillMessages.length - 1);
 
-            // wait for dom before scrolling
+            // wait for dom before scrolling!!
             this.$nextTick(() => {
               const container = this.$refs.messagesContainer;
               container.scrollTop = container.scrollHeight;
 
               const circle = this.$refs.progressCircle;
 
-              // fix: Ensure the circle element exists before trying to set its progress
               if (circle && circle.r && circle.r.baseVal) {
                 // start with empty ring
                 this.setProgress(circle, 0);
@@ -757,7 +750,7 @@ export default {
                 content: "",
                 type: "text",
               });
-              // simulate typing and render options after completion
+              // simulate typing, only render options after completion
               this.simulateTyping(response.data.reply, () => {
                 this.updateOptions(response.data.options || []);
                 this.currentOptions = response.data.options || [];
@@ -782,7 +775,6 @@ export default {
               content: "",
               type: "text",
             });
-            // simulate typing and render options after completion
             this.simulateTyping(response.data.reply, () => {
               this.updateOptions(response.data.options || []);
               this.currentOptions = response.data.options || [];
@@ -790,8 +782,6 @@ export default {
               this.$nextTick(() => {
                 const container = this.$refs.messagesContainer;
                 container.scrollTop = container.scrollHeight;
-
-                // check if tasks are completed and show the completion modal
                 if (response.data.tasksCompleted) {
                   setTimeout(() => {
                     this.showCompletionModalTrigger();
@@ -800,7 +790,7 @@ export default {
               });
             });
           }
-        }, 2000); // 2 seconds delay for the typing indicator
+        }, 2000); // typing delay
       } catch (error) {
         console.error("Error sending message:", error);
         this.typingMessage = false;
@@ -860,7 +850,7 @@ export default {
         messageElement.content += nextChunk;
         index += chunkSize;
 
-        // auto scroll
+        // auto scroll!!
         this.$nextTick(() => {
           const container = this.$refs.messagesContainer;
           container.scrollTop = container.scrollHeight;
@@ -881,17 +871,18 @@ export default {
 
           setTimeout(typeNextChunk, delay);
         } else {
-          // Add a small pause at the end to simulate "thinking"
+          // add a small pause at the end to simulate "thinking"
           setTimeout(() => {
-            messageElement.typing = false; // Remove the typing indicator after the pause
+            messageElement.typing = false;
             if (callback) {
-              callback(); // Execute callback after typing is complete
+              callback();
             }
-          }, endPause); // Pause before finishing typing
+          }, endPause);
         }
       };
 
-      typeNextChunk(); // Start typing
+      // typing start
+      typeNextChunk();
     },
 
     // converts option buttons into complete answeres
@@ -1012,8 +1003,6 @@ export default {
     showCompletionModalTrigger() {
       this.tasksCompleted = true;
     },
-
-    // redirects to the questionnaire
     proceedToQuestionnaire() {
       const userId = sessionStorage.getItem("userId");
 
@@ -1023,7 +1012,6 @@ export default {
           sessionEnd: true,
         })
         .then(() => {
-          // Redirect to the Google Form
           window.location.href =
             "https://docs.google.com/forms/d/e/1FAIpQLSczzL6ne5xJj3e91Q2XjETvT6MrqFDw4BSRl9ZmtMVpD9Rd5g/viewform?usp=sf_link";
         })
@@ -1031,8 +1019,6 @@ export default {
           console.error("Error logging session end:", error);
         });
     },
-
-    // if user wants to continue testing
     continueTesting() {
       this.showCompletionModal = false;
     },
@@ -1566,7 +1552,7 @@ button:focus {
   z-index: 1000;
 }
 
-/* Add hover effect for Completion Button */
+/* bug fix: add hover effect for completion button */
 .completion-button:hover {
   background-color: #dcf34f;
   color: #141e22;
